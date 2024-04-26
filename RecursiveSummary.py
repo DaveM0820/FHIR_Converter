@@ -16,7 +16,19 @@ def loadTextData(root_dir):
             all_lines.append(file_content.splitlines())
     print (all_lines)
     return (all_lines)
+    directory = pathlib.Path(__file__).parent.resolve() / "CSVData"
+    for root,dirs,files in os.walk(directory):
+        for file in files:
+           if file.endswith(".csv"):
+               f=open(file, 'r')
+               all_lines.append(r)
+               f.close()
+    string = "";
+    for i in all_lines: 
+      string += i
+    #print (string)
 
+    return string
 
 
 def summarize_data(data, initial=False):
@@ -31,13 +43,12 @@ def summarize_data(data, initial=False):
     else:
         prompt = (f"You are summarizing the previous summaries. Please consolidate the information below into a comprehensive summary:\n\n"
                   f"{data}")
-    response = client.chat.completions.create(
+    response = openai.Completion.create(
         model="gpt-4-turbo",
-        messages=[
-            {"role": "system", "content": prompt},
-        ]
+        prompt=prompt,
+        max_tokens=2048
     )
-    return response.choices[0].message.content
+    return response.choices[0].text.strip()
 
 def recursive_summarize(summaries, level=0):
     if len(summaries) == 1:
