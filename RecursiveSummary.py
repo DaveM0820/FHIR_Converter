@@ -3,10 +3,11 @@ import openai
 import os
 import csv
 
-def loaddata(root_dir):
+def loadCSVData(root_dir):
     all_data = []
     # Walk through the directory
     for dirpath, dirnames, filenames in os.walk(root_dir):
+        print(dirpath)
         for file in filenames:
             # Check if the file is a CSV
             if file.endswith('.csv'):
@@ -21,9 +22,7 @@ def loaddata(root_dir):
     return all_data
 
 # Usage
-directory_path = 'path/to/your/directory'
-csv_data = read_all_csv_files_in_directory(directory_path)
-print(csv_data)  # Prints all CSV row data as a list of strings
+
 def summarize_data(data, initial=False):
     if initial:
         prompt = (f"You are an expert medical professional data analyst who is analyzing the data below. "
@@ -54,12 +53,16 @@ def recursive_summarize(summaries, level=0):
         new_summary = summarize_data(chunked_data, initial=False)
         new_summaries.append(new_summary)
     return recursive_summarize(new_summaries, level + 1)
+
 def main():
+    CSV_directory_path = '/CSVData'
+    csv_data = loadCSVData(CSV_directory_path)
+    print(csv_data)  # Prints all CSV row data as a list of strings
     openai.api_key = "YOUR_OPENAI_API_KEY"
-    data_chunks = load_data()
-    initial_summaries = [summarize_data(chunk, initial=True) for chunk in data_chunks]
-    final_summary = recursive_summarize(initial_summaries)
-    print("Final Summary:", final_summary)
+    #data_chunks = load_data()
+    #initial_summaries = [summarize_data(chunk, initial=True) for chunk in data_chunks]
+    #final_summary = recursive_summarize(initial_summaries)
+    #print("Final Summary:", final_summary)
 if __name__ == "__main__":
     main()
 
