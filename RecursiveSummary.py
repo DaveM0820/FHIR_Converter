@@ -1,27 +1,23 @@
 import openai
-
-import os
+from pathlib import Path
+from os import listdir
+from os.path import isfile, join
 import csv
+import pathlib
 
-def loadCSVData(root_dir):
-    all_data = []
-    # Walk through the directory
-    for dirpath, dirnames, filenames in os.walk(root_dir):
-        print(dirpath)
-        for file in filenames:
-            # Check if the file is a CSV
-            if file.endswith('.csv'):
-                file_path = os.path.join(dirpath, file)
-                # Read the CSV file
-                with open(file_path, mode='r', newline='', encoding='utf-8') as csvfile:
-                    reader = csv.reader(csvfile)
-                    for row in reader:
-                        # Convert row to string and append to the list
-                        row_str = ','.join(row)
-                        all_data.append(row_str)
-    return all_data
+def loadTextData(root_dir):
+    path = pathlib.Path(__file__).parent.resolve() / "TXTData"
+    only_files = [f for f in listdir(path) if isfile(join(path, f))]
+    all_lines = []
+    for file_name in only_files:
+        file_path = Path(path) / file_name
+        with open(file_path, 'r') as f:
+            file_content = f.read()
+            all_lines.append(file_content.splitlines())
+    print (all_lines)
+    return (all_lines)
 
-# Usage
+
 
 def summarize_data(data, initial=False):
     if initial:
@@ -56,7 +52,7 @@ def recursive_summarize(summaries, level=0):
 
 def main():
     CSV_directory_path = '/CSVData'
-    csv_data = loadCSVData(CSV_directory_path)
+    csv_data = loadTextData(CSV_directory_path)
     print(csv_data)  # Prints all CSV row data as a list of strings
     openai.api_key = "YOUR_OPENAI_API_KEY"
     #data_chunks = load_data()
