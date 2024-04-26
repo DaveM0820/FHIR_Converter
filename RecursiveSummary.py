@@ -31,12 +31,13 @@ def summarize_data(data, initial=False):
     else:
         prompt = (f"You are summarizing the previous summaries. Please consolidate the information below into a comprehensive summary:\n\n"
                   f"{data}")
-    response = openai.Completion.create(
+    response = client.chat.completions.create(
         model="gpt-4-turbo",
-        prompt=prompt,
-        max_tokens=2048
+        messages=[
+            {"role": "system", "content": prompt},
+        ]
     )
-    return response.choices[0].text.strip()
+    return response.choices[0].message.content
 
 def recursive_summarize(summaries, level=0):
     if len(summaries) == 1:
