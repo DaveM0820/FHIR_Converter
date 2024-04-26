@@ -7,7 +7,7 @@ import pathlib
 from fhirclient import client
 from fhirclient.models import patient
 
-client = OpenAI(
+openAIClient = OpenAI(
     api_key="API-KEY",
 )
 
@@ -21,7 +21,7 @@ def loadFHIRData():
     all_patients = patient.Patient.where(struct={'_count': 1000}).perform_resources(smart.server)
     for patient_resource in all_patients:
         print(patient_resource.name[0].given[0], patient_resource.name[0].family)
-    
+
 def loadTextData(root_dir):
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
     only_files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -74,7 +74,7 @@ def summarize_data(data, initial=False):
     else:
         prompt = (f"You are summarizing the previous summaries. Please consolidate the information below into a comprehensive summary:\n\n"
                   f"{data}")
-    response = client.chat.completions.create(
+    response = openAIClient.chat.completions.create(
         model="gpt-4-turbo",
         messages=[{"role": "system","content": prompt}]
     )
