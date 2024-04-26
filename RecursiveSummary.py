@@ -27,7 +27,7 @@ def loadTextData(root_dir):
         with open(file_path, 'r') as f:
             file_content = f.read()
             all_lines.append(file_content.splitlines())
-    print (all_lines)
+    # print (all_lines)
     return (all_lines)
     directory = pathlib.Path(__file__).parent.resolve() / "CSVData"
     for root,dirs,files in os.walk(directory):
@@ -36,13 +36,27 @@ def loadTextData(root_dir):
                f=open(file, 'r')
                all_lines.append(r)
                f.close()
-    string = "";
+    words = ""
     for i in all_lines: 
-      string += i
-    #print (string)
+      words += i
+    print(words)
+    words_array = words.split(" ") 
+    groups_of_20000 = []
+    temp_group = []
+    for word in words_array:
+        temp_group.append(word)
+        if len(temp_group) == 20000:
+            groups_of_20000.append(temp_group)
+            temp_group = []
+    
+    if temp_group:
+        groups_of_20000.append(temp_group)
 
-    return string
+    for i, group in enumerate(groups_of_20000):
+        print(f"Group {i+1}: {group}")
 
+    print(groups_of_20000)
+    return groups_of_20000
 
 def summarize_data(data, initial=False):
     if initial:
@@ -90,6 +104,10 @@ def main():
         summaryNumber ++
     
     
+    CSV_directory_path = '/CSVData'
+    csv_data = loadTextData(CSV_directory_path)
+    # print(csv_data)  # Prints all CSV row data as a list of strings
+    openai.api_key = "YOUR_OPENAI_API_KEY"
     #data_chunks = load_data()
     #initial_summaries = [summarize_data(chunk, initial=True) for chunk in data_chunks]
     #final_summary = recursive_summarize(initial_summaries)
