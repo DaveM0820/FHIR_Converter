@@ -1,0 +1,71 @@
+Hamilton Health Sciences  
+Juravinski Cancer Centre - Medical Transcription  
+699 Concession Street, Hamilton, ON L8V 5C2  
+Phone:  (999) 999-9999  
+  
+PATIENT:  ONE, PATIENT            DOB:  16/08/1975         Sex:  F   
+Health Card:  1234567890-AB                                         
+Address:  100 CHERRY TREE LANE, HAMILTON,ON L8V 1C3   
+Family Physician:  Two, Provider 
+Attending Provider: One, Provider
+Signing Provider:  Three, Provider 
+Date of Dictation:  01/10/18                  MRN:  H000000001  
+Visit Date:  01/10/18                     Account:  HC000001/01            
+  
+                            ONCOLOGY CONSULT NOTE  
+  
+  
+Dear Dr. Provider One,  
+  
+Thank you for referring Patient One, a 43-year-old woman to be seen today in the  
+Medical Oncology Clinic regarding neoadjuvant treatment options for her right-sided  
+locally advanced invasive ductal carcinoma, biopsy proven to involve lymph nodes.  Full  
+staging investigations pending.  She is part of the PET ABC study.  Biopsy shows receptor  
+status ER 86% positive, PR 12% positive and HER2 negative by IHC.  She presents with a 6.5  
+cm palpable mass as well as 3 cm palpable lymph node.  A full consultation will be  
+dictated by the resident working with me in clinic; however, I will summarize pertinent  
+details.  
+  
+She detected some skin thickening in summer 2018, which prompted medical investigations 
+including mammogram, ultrasound and biopsy ultimately carried out in September confirming 
+invasive breast cancer.  Imaging suggested calcifications over a span of 11.2 cm and she 
+presented with a large palpable lump.  
+
+A PET scan has been carried out which does not confirm metastatic disease, but raises a 
+number of nonspecific abnormalities including mediastinal lymph nodes and periaortic 
+lymph node, nonspecific uptake in the liver and nonspecific uptake in the bones, 
+particularly at T10.  These areas will all require further imaging for followup.  
+Also, she has an MRI of the breasts coming up.  
+  
+She is otherwise healthy, really with no significant comorbidities.
+  
+IMPRESSION AND PLAN:  
+We have discussed the uncertainty around staging.  In the event that metastatic disease  
+is ruled out I would strongly support the role for neoadjuvant chemotherapy to be  
+followed by subsequent surgery, radiation and endocrine therapy.  If, however, she has  
+metastatic disease which is ER positive, we may take an entirely different treatment  
+approach such as endocrine therapy with a CDK4 inhibitor.  I think that accurate staging  
+here is critical for a care plan.  
+
+I will ask for an urgent MRI of the liver as well as CT chest, abdomen and pelvis.  
+I will meet with her to review the results.  For the time being, she feels  
+she has sufficient supports but she will call me if things change.  
+  
+  
+  
+#0000001  
+  
+Provider Three, MD, FRCPC  
+  
+ 
+                                       
+  
+THREPRO:JPE:HR  /  01/10/18  /  0001-0001  
+  
+CC:  HEALTH RECORDS, One, Provider; Two, Provider
+  
+<Electronically signed by Provider Three >   
+  
+  
+Report Authenticated Date/Time:  01/10/18 1111  
+    

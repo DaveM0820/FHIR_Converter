@@ -1,0 +1,6 @@
+patient_id,image_id,modality,body_region,result,lymph_node
+b,1,CT,Chest/Abdomen/Pelvis,Metastasis,Node Present
+b,2,CT,Chest,Unknown,Unknown
+b,3,XRAY,Chest,Metastasis,
+b,4,XRAY,Chest,Unknown,
+b,5,XRAY,Chest,Unknown,

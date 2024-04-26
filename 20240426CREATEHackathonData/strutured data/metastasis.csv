@@ -1,0 +1,6 @@
+patient_id,metastasis_id,site
+b ,1,Brain
+b ,2,Bone
+b ,3,Lung
+a,1,Bone
+a,2,Liver

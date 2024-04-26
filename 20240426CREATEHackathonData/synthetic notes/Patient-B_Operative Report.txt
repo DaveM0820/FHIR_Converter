@@ -1,0 +1,63 @@
+ 
+PATIENT:   TWO, PATIENT             ID: H000000001      
+                           LOC:HI-ICU
+Address:   742 EVERGREEN ST , HAMILTON,ON L8L 2X2     
+Health Card:   1234567890-CD                                                DOB: 25/04/1963
+  Dictating Provider:   Ten, Provider MD, FRCP(C)
+Attending Provider:   Three,Provider
+Family Physician:   Four,Provider
+Date of Dictation:   01/08/14
+Admission Date:   01/07/14
+Discharge Date:   01/08/14
+Visit Date:   01/07/14      Account:    HA000001/01   
+ 
+ 
+ OPERATIVE REPORT
+ 
+ 
+ DATE OF OPERATION:  01/8/2014
+ 
+ SURGEON:
+ Dr. Provider Ten
+ 
+ ASSISTANT:
+ Dr. Provider Twelve
+ 
+ PROCEDURE:
+ Bronchoscopy.
+ 
+ INDICATION:
+ For bronchial toilet, BAL and immunocompromised host.
+ 
+ In preparation for the procedure, Patient Two's propofol and Fentanyl were increased
+ slightly.  Xylocaine 2% was instilled into the endotracheal tube.  Throughout the
+ procedure, she maintained a blood pressure of greater than 100 and a sat of 100%.
+ 
+ PROCEDURE:
+ The endotracheal tube was in good position.  There was quite a bit of yellow secretions
+ in the trachea which was aspirated and sent for culture.  The left main, left upper lobe,
+ left lower lobe and lingula were normal.  There were minimal secretions.  The left main
+ and left upper lobe were normal.  The right middle lobe and right lower lobe were
+ slightly edematous.  There was organized fibrin clot in the right lower lobe.  I was able
+ to remove some of it, but a remnant in a small airway in the right lower lobe did
+ persist.  There was minimal amount of scope trauma.  There was some yellow-white
+ secretions in the left lower lobe in which we did a BAL with 70 mL in and 20 mL out.
+ 
+ The scope was withdrawn and the patient tolerated the procedure well.
+ 
+ 
+ 
+ #000001
+ 
+ Provider Twelve dictating for
+ 
+ AUTHENTICATED AS PER POLICY
+ 
+Provider Ten, M.D., F.R.C.P.(C)
+ 
+                                     
+ 
+ 
+PROTEN:JOR:HR  /  01/09/14  /  0001-0001
+ 
+CC:  HEALTH RECORDS, Four,Provider; Ten,Provider; Three,Provider

@@ -1,0 +1,56 @@
+ 
+PATIENT:   TWO, PATIENT              ID: H000000001      
+                           LOC: HI-ICU
+Address:   742 EVERGREEN ST , HAMILTON,ON L8L 2X2     
+Health Card:   1234567890-CD                                                 DOB: 25/04/1963
+  Dictating Provider:   Ten, Provider MD, FRCP(C)
+Attending Provider:   Three,Provider
+Family Physician:   Four,Provider
+Date of Dictation:   01/09/14
+Admission Date:   01/07/14
+Discharge Date:   01/09/14
+Visit Date:   01/07/14      Account:    HA000001/01   
+ 
+ 
+ DISCHARGE SUMMARY
+ 
+ 
+ 
+ 
+ 
+ 
+ Dear Drs. Provider Three, Provider Four and Provider Ten:
+ 
+ As you are aware, Patient Two was diagnosed with breast cancer in April 2014.  She was
+ admitted to hospital on July 1, 2014 with abdominal pain and acute kidney injury and
+ hypercalcemia.  She was managed by the Medical Oncology Unit and was preparing for
+ discharge home when she experienced sudden acute hypoxic episode as well as severe
+ hypotension.
+ 
+ She was transferred to the Intensive Care Unit and as per the wishes of her husband,
+ intubated and treated with fluids and vasopressors.  Over the subsequent 36 hours.  Patient
+ Two's status varied. At 1111, Patient Two began to stabalize and recover.
+ 
+ She is being referred back to the Medical Oncology Unit to revisit medications and 
+ explore options for pallative care.
+
+ If you have any questions, please do not hesitate to contact us.
+ 
+ Sincerely,
+ 
+ 
+ 
+ #000001
+ 
+ Provider Eleven dictating for
+ 
+ AUTHENTICATED AS PER POLICY
+ 
+ Provider Ten, M.D., F.R.C.P.(C)
+ 
+ 
+                                     
+ 
+TENPRO:JOR:HR  /  01/09/14  /  0001-0001
+ 
+CC:  HEALTH RECORDS, Eight,Provider; Four,Provider; Ten,Provider; Three,Provider 

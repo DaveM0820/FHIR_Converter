@@ -1,0 +1,88 @@
+  
+PATIENT:   ONE, PATIENT               ID: H000000001        
+                           LOC: HI-ONC  
+Address:   100 CHERRY TREE LANE, HAMILTON,ON L8V 1C3        
+Health Card:   1234567980-AB                                                DOB: 16/08/1975
+    Dictating Provider:   Four, Provider   
+Attending Provider:   Four,Provider  
+Family Physician:   Two,Provider  
+Date of Dictation:   01/01/19  
+Admission Date:   01/01/19  
+Discharge Date:   01/01/19  
+Visit Date:   01/01/19      Account:    HA000001/01     
+  
+  
+ DISCHARGE SUMMARY  
+  
+ 
+ DIAGNOSIS MOST RESPONSIBLE FOR AFFECTING LENGTH OF STAY:  
+ Bilateral lobe pneumonia.  
+   
+ OTHER DIAGNOSES AFFECTING LENGTH OF STAY:  
+ Query diagnosis of drug-induced pneumonitis.  
+   
+ PREMORBID CONDITIONS:  
+ Left locally advanced breast cancer.  
+   
+ COMPLICATIONS:  
+ None.  
+   
+ PROCEDURES:  
+ None.  
+   
+ CONSULTATIONS:  
+ 1.  Medical Oncology.  
+ 2.  Respirology.  
+   
+ SUMMARY OF COURSE IN HOSPITAL:  
+ The patient is a very pleasant 43-year-old female who was admitted through the ER for a  
+ chief complaint of fever and a subsequent workup.  The patient had a complaint of a  
+ 2-week history of cough, dyspnea as well as a sick contacts at home who are her children,  
+ and a recorded febrile temperature at home of 38 degrees.  
+
+ In the ER, initial workup with a chest x-ray and cultures showed a presumptive diagnosis 
+ of a right middle lobe infiltrate suspicious for a community-acquired pneumonia.  The 
+ patient was subsequently admitted to the Hospitalist Service for further management.  
+ Throughout the hospital course, the patient remained hemodynamically stable, at the most 
+ requiring only half a liter to 1 liter of oxygen which was eventually weaned off after 
+ subsequent treatment. In suspicion for ongoing pneumonia involving the bilateral lower lobes, 
+ cultures were obtained which remained negative throughout the hospital course.  The patient 
+ was started on broad spectrum antibiotics, with further imaging done with a CT scan of  
+ the chest.  
+
+ CT scan of the chest was impressive for an interval development of extensive  
+ ground-glass abnormality in both lungs, along with regions of consolidation in the lower  
+ lobes, but given the elevated white count, an infectious etiology was possible; however,  
+ consideration for drug-induced diffuse alveolar damage and pneumonitis from recent chemo  
+ was a possibility.  Respirology was consulted for an opinion to see if a bronchoscopy  
+ would be beneficial, but they deemed that no bronchoscopy would be done at this time.  
+ They recommended continuation of antibiotics and close monitoring, and also recommended 
+ possibility of starting systemic steroids as it may provide some benefit for pneumonitis.  
+
+ Medical Oncology also evaluated. The patient's primary oncologist, Dr. Provider Three, 
+ agreed with ongoing treatment with antibiotics.  
+
+ On day of discharge, cultures remained negative. The patient remained hemodynamically stable.  
+ She was on room air. Plan of care was explained to her.  The patient was in agreement to 
+ discharge with the followup plan with the Medical Oncology Service.   
+   
+ DISCHARGE MEDICATIONS:  
+ 1.  Levofloxacin 750 mg p.o. x4 days.  
+ 2.  Dexamethasone 4 mg p.o. x3 days, then dexamethasone 2 mg p.o. daily x3 days, then  
+ dexamethasone 10 mg p.o. daily x3 days, then Dexamethasone 0.5 mg p.o. daily x3 days.  
+   
+ FOLLOWUP PLAN:  
+ 1.  Schedule appointment with the JCC with medical oncologist, Dr. Provider Three.  
+ 2.  Follow up with primary care in 1-2 weeks.  
+   
+    
+#0000001  
+   
+AUTHENTICATED AS PER POLICY   
+Provider Four, M.D.  
+                                         
+FOURPRO:KPU:HR  /  01/01/19  /  0001-0001  
+  
+CC:  HEALTH RECORDS, Two, Provider; Four,Provider  
+     
+Report Authenticated Date/Time: 01/01/19 1111  
