@@ -1,0 +1,402 @@
+{
+  "resourceType" : "Patient",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // An identifier for this patient
+  "active" : <boolean>, // Whether this patient's record is in active use
+  "name" : [{ HumanName }], // A name associated with the patient
+  "telecom" : [{ ContactPoint }], // A contact detail for the individual
+  "gender" : "<code>", // male | female | other | unknown
+  "birthDate" : "<date>", // The date of birth for the individual
+  // deceased[x]: Indicates if the individual is deceased or not. One of these 2:
+  "deceasedBoolean" : <boolean>,
+  "deceasedDateTime" : "<dateTime>",
+  "address" : [{ Address }], // An address for the individual
+  "maritalStatus" : { CodeableConcept }, // Marital (civil) status of a patient
+  // multipleBirth[x]: Whether patient is part of a multiple birth. One of these 2:
+  "multipleBirthBoolean" : <boolean>,
+  "multipleBirthInteger" : <integer>,
+  "photo" : [{ Attachment }], // Image of the patient
+  "contact" : [{ // A contact party (e.g. guardian, partner, friend) for the patient
+    "relationship" : [{ CodeableConcept }], // The kind of relationship
+    "name" : { HumanName }, // I A name associated with the contact person
+    "telecom" : [{ ContactPoint }], // I A contact detail for the person
+    "address" : { Address }, // I Address for the contact person
+    "gender" : "<code>", // male | female | other | unknown
+    "organization" : { Reference(Organization) }, // I Organization that is associated with the contact
+    "period" : { Period } // The period during which this contact person or organization is valid to be contacted relating to this patient
+  }],
+  "communication" : [{ // A language which may be used to communicate with the patient about his or her health
+    "language" : { CodeableConcept }, // R!  The language which can be used to communicate with the patient about his or her health
+    "preferred" : <boolean> // Language preference indicator
+  }],
+  "generalPractitioner" : [{ Reference(Organization|Practitioner|
+   PractitionerRole) }], // Patient's nominated primary care provider
+  "managingOrganization" : { Reference(Organization) }, // Organization that is the custodian of the patient record
+  "link" : [{ // Link to a Patient or RelatedPerson resource that concerns the same actual individual
+    "other" : { Reference(Patient|RelatedPerson) }, // R!  The other patient or related person resource that the link refers to
+    "type" : "<code>" // R!  replaced-by | replaces | refer | seealso
+  }]
+}
+|||
+{
+  "resourceType" : "Observation",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // Business Identifier for observation
+  // instantiates[x]: Instantiates FHIR ObservationDefinition. One of these 2:
+  "instantiatesCanonical" : "<canonical(ObservationDefinition)>",
+  "instantiatesReference" : { Reference(ObservationDefinition) },
+  "basedOn" : [{ Reference(CarePlan|DeviceRequest|ImmunizationRecommendation|
+   MedicationRequest|NutritionOrder|ServiceRequest) }], // Fulfills plan, proposal or order
+  "triggeredBy" : [{ // Triggering observation(s)
+    "observation" : { Reference(Observation) }, // R!  Triggering observation
+    "type" : "<code>", // R!  reflex | repeat | re-run
+    "reason" : "<string>" // Reason that the observation was triggered
+  }],
+  "partOf" : [{ Reference(GenomicStudy|ImagingStudy|Immunization|
+   MedicationAdministration|MedicationDispense|MedicationStatement|Procedure) }], // Part of referenced event
+  "status" : "<code>", // R!  registered | preliminary | final | amended +
+  "category" : [{ CodeableConcept }], // Classification of  type of observation
+  "code" : { CodeableConcept }, // I R!  Type of observation (code / type)
+  "subject" : { Reference(BiologicallyDerivedProduct|Device|Group|Location|
+   Medication|NutritionProduct|Organization|Patient|Practitioner|Procedure|
+   Substance) }, // Who and/or what the observation is about
+  "focus" : [{ Reference(Any) }], // What the observation is about, when it is not about the subject of record
+  "encounter" : { Reference(Encounter) }, // Healthcare event during which this observation is made
+  // effective[x]: Clinically relevant time/time-period for observation. One of these 4:
+  "effectiveDateTime" : "<dateTime>",
+  "effectivePeriod" : { Period },
+  "effectiveTiming" : { Timing },
+  "effectiveInstant" : "<instant>",
+  "issued" : "<instant>", // Date/Time this version was made available
+  "performer" : [{ Reference(CareTeam|Organization|Patient|Practitioner|
+   PractitionerRole|RelatedPerson) }], // Who is responsible for the observation
+  // value[x]: Actual result. One of these 13:
+  "valueQuantity" : { Quantity },
+  "valueCodeableConcept" : { CodeableConcept },
+  "valueString" : "<string>",
+  "valueBoolean" : <boolean>,
+  "valueInteger" : <integer>,
+  "valueRange" : { Range },
+  "valueRatio" : { Ratio },
+  "valueSampledData" : { SampledData },
+  "valueTime" : "<time>",
+  "valueDateTime" : "<dateTime>",
+  "valuePeriod" : { Period },
+  "valueAttachment" : { Attachment },
+  "valueReference" : { Reference(MolecularSequence) },
+  "dataAbsentReason" : { CodeableConcept }, // I Why the result is missing
+  "interpretation" : [{ CodeableConcept }], // High, low, normal, etc
+  "note" : [{ Annotation }], // Comments about the observation
+  "bodySite" : { CodeableConcept }, // I Observed body part
+  "bodyStructure" : { Reference(BodyStructure) }, // I Observed body structure
+  "method" : { CodeableConcept }, // How it was done
+  "specimen" : { Reference(Group|Specimen) }, // Specimen used for this observation
+  "device" : { Reference(Device|DeviceMetric) }, // A reference to the device that generates the measurements or the device settings for the device
+  "referenceRange" : [{ // Provides guide for interpretation
+    "low" : { Quantity(SimpleQuantity) }, // I Low Range, if relevant
+    "high" : { Quantity(SimpleQuantity) }, // I High Range, if relevant
+    "normalValue" : { CodeableConcept }, // Normal value, if relevant
+    "type" : { CodeableConcept }, // Reference range qualifier
+    "appliesTo" : [{ CodeableConcept }], // Reference range population
+    "age" : { Range }, // Applicable age range, if relevant
+    "text" : "<markdown>" // I Text based reference range in an observation
+  }],
+  "hasMember" : [{ Reference(MolecularSequence|Observation|
+   QuestionnaireResponse) }], // Related resource that belongs to the Observation group
+  "derivedFrom" : [{ Reference(DocumentReference|GenomicStudy|ImagingSelection|
+   ImagingStudy|MolecularSequence|Observation|QuestionnaireResponse) }], // Related resource from which the observation is made
+  "component" : [{ // I Component results
+    "code" : { CodeableConcept }, // I R!  Type of component observation (code / type)
+    // value[x]: Actual component result. One of these 13:
+    "valueQuantity" : { Quantity },
+    "valueCodeableConcept" : { CodeableConcept },
+    "valueString" : "<string>",
+    "valueBoolean" : <boolean>,
+    "valueInteger" : <integer>,
+    "valueRange" : { Range },
+    "valueRatio" : { Ratio },
+    "valueSampledData" : { SampledData },
+    "valueTime" : "<time>",
+    "valueDateTime" : "<dateTime>",
+    "valuePeriod" : { Period },
+    "valueAttachment" : { Attachment },
+    "valueReference" : { Reference(MolecularSequence) },
+    "dataAbsentReason" : { CodeableConcept }, // Why the component result is missing
+    "interpretation" : [{ CodeableConcept }], // High, low, normal, etc
+    "referenceRange" : [{ Content as for Observation.referenceRange }] // Provides guide for interpretation of component result
+  }]
+}
+|||
+{
+  "resourceType" : "Condition",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // External Ids for this condition
+  "clinicalStatus" : { CodeableConcept }, // I R!  active | recurrence | relapse | inactive | remission | resolved | unknown
+  "verificationStatus" : { CodeableConcept }, // unconfirmed | provisional | differential | confirmed | refuted | entered-in-error
+  "category" : [{ CodeableConcept }], // I problem-list-item | encounter-diagnosis
+  "severity" : { CodeableConcept }, // Subjective severity of condition
+  "code" : { CodeableConcept }, // Identification of the condition, problem or diagnosis
+  "bodySite" : [{ CodeableConcept }], // Anatomical location, if relevant
+  "subject" : { Reference(Group|Patient) }, // R!  Who has the condition?
+  "encounter" : { Reference(Encounter) }, // The Encounter during which this Condition was created
+  // onset[x]: Estimated or actual date,  date-time, or age. One of these 5:
+  "onsetDateTime" : "<dateTime>",
+  "onsetAge" : { Age },
+  "onsetPeriod" : { Period },
+  "onsetRange" : { Range },
+  "onsetString" : "<string>",
+  // abatement[x]: When in resolution/remission. One of these 5:
+  "abatementDateTime" : "<dateTime>",
+  "abatementAge" : { Age },
+  "abatementPeriod" : { Period },
+  "abatementRange" : { Range },
+  "abatementString" : "<string>",
+  "recordedDate" : "<dateTime>", // Date condition was first recorded
+  "participant" : [{ // Who or what participated in the activities related to the condition and how they were involved
+    "function" : { CodeableConcept }, // Type of involvement
+    "actor" : { Reference(CareTeam|Device|Organization|Patient|Practitioner|
+    PractitionerRole|RelatedPerson) } // R!  Who or what participated in the activities related to the condition
+  }],
+  "stage" : [{ // Stage/grade, usually assessed formally
+    "summary" : { CodeableConcept }, // I Simple summary (disease specific)
+    "assessment" : [{ Reference(ClinicalImpression|DiagnosticReport|Observation) }], // I Formal record of assessment
+    "type" : { CodeableConcept } // Kind of staging
+  }],
+  "evidence" : [{ CodeableReference(Any) }], // Supporting evidence for the verification status
+  "note" : [{ Annotation }] // Additional information about the Condition
+}
+|||
+{
+  "resourceType" : "DiagnosticReport",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // Business identifier for report
+  "basedOn" : [{ Reference(CarePlan|ImmunizationRecommendation|
+   MedicationRequest|NutritionOrder|ServiceRequest) }], // What was requested
+  "status" : "<code>", // R!  registered | partial | preliminary | modified | final | amended | corrected | appended | cancelled | entered-in-error | unknown
+  "category" : [{ CodeableConcept }], // Service category
+  "code" : { CodeableConcept }, // R!  Name/Code for this diagnostic report
+  "subject" : { Reference(BiologicallyDerivedProduct|Device|Group|Location|
+   Medication|Organization|Patient|Practitioner|Substance) }, // The subject of the report - usually, but not always, the patient
+  "encounter" : { Reference(Encounter) }, // Health care event when test ordered
+  // effective[x]: Clinically relevant time/time-period for report. One of these 2:
+  "effectiveDateTime" : "<dateTime>",
+  "effectivePeriod" : { Period },
+  "issued" : "<instant>", // DateTime this version was made
+  "performer" : [{ Reference(CareTeam|Organization|Practitioner|
+   PractitionerRole) }], // Responsible Diagnostic Service
+  "resultsInterpreter" : [{ Reference(CareTeam|Organization|Practitioner|
+   PractitionerRole) }], // Primary result interpreter
+  "specimen" : [{ Reference(Specimen) }], // Specimens this report is based on
+  "result" : [{ Reference(Observation) }], // I Observations
+  "note" : [{ Annotation }], // Comments about the diagnostic report
+  "study" : [{ Reference(GenomicStudy|ImagingStudy) }], // Reference to full details of an analysis associated with the diagnostic report
+  "supportingInfo" : [{ // Additional information supporting the diagnostic report
+    "type" : { CodeableConcept }, // R!  Supporting information role code icon
+    "reference" : { Reference(Citation|DiagnosticReport|Observation|Procedure) } // R!  Supporting information reference
+  }],
+  "media" : [{ // Key images or data associated with this report
+    "comment" : "<string>", // Comment about the image or data (e.g. explanation)
+    "link" : { Reference(DocumentReference) } // R!  Reference to the image or data source
+  }],
+  "composition" : { Reference(Composition) }, // I Reference to a Composition resource for the DiagnosticReport structure
+  "conclusion" : "<markdown>", // Clinical conclusion (interpretation) of test results
+  "conclusionCode" : [{ CodeableConcept }], // Codes for the clinical conclusion of test results
+  "presentedForm" : [{ Attachment }] // Entire report as issued
+}
+|||
+{
+  "resourceType" : "Procedure",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // External Identifiers for this procedure
+  "instantiatesCanonical" : ["<canonical(PlanDefinition|ActivityDefinition|Measure|OperationDefinition|Questionnaire)>"], // Instantiates FHIR protocol or definition
+  "instantiatesUri" : ["<uri>"], // Instantiates external protocol or definition
+  "basedOn" : [{ Reference(CarePlan|ServiceRequest) }], // A request for this procedure
+  "partOf" : [{ Reference(MedicationAdministration|Observation|Procedure) }], // Part of referenced event
+  "status" : "<code>", // R!  preparation | in-progress | not-done | on-hold | stopped | completed | entered-in-error | unknown
+  "statusReason" : { CodeableConcept }, // Reason for current status
+  "category" : [{ CodeableConcept }], // Classification of the procedure
+  "code" : { CodeableConcept }, // Identification of the procedure
+  "subject" : { Reference(Device|Group|Location|Organization|Patient|
+   Practitioner) }, // R!  Individual or entity the procedure was performed on
+  "focus" : { Reference(CareTeam|Group|Organization|Patient|Practitioner|
+   PractitionerRole|RelatedPerson|Specimen) }, // Who is the target of the procedure when it is not the subject of record only
+  "encounter" : { Reference(Encounter) }, // The Encounter during which this Procedure was created
+  // occurrence[x]: When the procedure occurred or is occurring. One of these 6:
+  "occurrenceDateTime" : "<dateTime>",
+  "occurrencePeriod" : { Period },
+  "occurrenceString" : "<string>",
+  "occurrenceAge" : { Age },
+  "occurrenceRange" : { Range },
+  "occurrenceTiming" : { Timing },
+  "recorded" : "<dateTime>", // When the procedure was first captured in the subject's record
+  "recorder" : { Reference(Patient|Practitioner|PractitionerRole|
+   RelatedPerson) }, // Who recorded the procedure
+  // reported[x]: Reported rather than primary record. One of these 2:
+  "reportedBoolean" : <boolean>,
+  "reportedReference" : { Reference(Organization|Patient|Practitioner|
+   PractitionerRole|RelatedPerson) },
+  "performer" : [{ // Who performed the procedure and what they did
+    "function" : { CodeableConcept }, // Type of performance
+    "actor" : { Reference(CareTeam|Device|HealthcareService|Organization|
+    Patient|Practitioner|PractitionerRole|RelatedPerson) }, // I R!  Who performed the procedure
+    "onBehalfOf" : { Reference(Organization) }, // I Organization the device or practitioner was acting for
+    "period" : { Period } // When the performer performed the procedure
+  }],
+  "location" : { Reference(Location) }, // Where the procedure happened
+  "reason" : [{ CodeableReference(Condition|DiagnosticReport|DocumentReference|
+   Observation|Procedure) }], // The justification that the procedure was performed
+  "bodySite" : [{ CodeableConcept }], // Target body sites
+  "outcome" : { CodeableConcept }, // The result of procedure
+  "report" : [{ Reference(Composition|DiagnosticReport|DocumentReference) }], // Any report resulting from the procedure
+  "complication" : [{ CodeableReference(Condition) }], // Complication following the procedure
+  "followUp" : [{ CodeableConcept }], // Instructions for follow up
+  "note" : [{ Annotation }], // Additional information about the procedure
+  "focalDevice" : [{ // Manipulated, implanted, or removed device
+    "action" : { CodeableConcept }, // Kind of change to device
+    "manipulated" : { Reference(Device) } // R!  Device that was changed
+  }],
+  "used" : [{ CodeableReference(BiologicallyDerivedProduct|Device|Medication|
+   Substance) }], // Items used during procedure
+  "supportingInfo" : [{ Reference(Any) }] // Extra information relevant to the procedure
+}
+|||
+{
+  "resourceType" : "ImagingStudy",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // Identifiers for the whole study
+  "status" : "<code>", // R!  registered | available | cancelled | entered-in-error | unknown
+  "modality" : [{ CodeableConcept }], // All of the distinct values for series' modalities icon
+  "subject" : { Reference(Device|Group|Patient) }, // R!  Who or what is the subject of the study
+  "encounter" : { Reference(Encounter) }, // Encounter with which this imaging study is associated
+  "started" : "<dateTime>", // When the study was started
+  "basedOn" : [{ Reference(Appointment|AppointmentResponse|CarePlan|
+   ServiceRequest|Task) }], // Request fulfilled
+  "partOf" : [{ Reference(Procedure) }], // Part of referenced event
+  "referrer" : { Reference(Practitioner|PractitionerRole) }, // Referring physician
+  "endpoint" : [{ Reference(Endpoint) }], // Study access endpoint
+  "numberOfSeries" : "<unsignedInt>", // Number of Study Related Series
+  "numberOfInstances" : "<unsignedInt>", // Number of Study Related Instances
+  "procedure" : [{ CodeableReference(ActivityDefinition|PlanDefinition) }], // The performed procedure or code icon
+  "location" : { Reference(Location) }, // Where ImagingStudy occurred
+  "reason" : [{ CodeableReference(Condition|DiagnosticReport|DocumentReference|
+   Observation) }], // Why the study was requested / performed
+  "note" : [{ Annotation }], // User-defined comments
+  "description" : "<string>", // Institution-generated description
+  "series" : [{ // Each study has one or more series of instances
+    "uid" : "<id>", // R!  DICOM Series Instance UID for the series
+    "number" : "<unsignedInt>", // Numeric identifier of this series
+    "modality" : { CodeableConcept }, // R!  The modality used for this series icon
+    "description" : "<string>", // A short human readable summary of the series
+    "numberOfInstances" : "<unsignedInt>", // Number of Series Related Instances
+    "endpoint" : [{ Reference(Endpoint) }], // Series access endpoint
+    "bodySite" : { CodeableReference(BodyStructure) }, // Body part examined
+    "laterality" : { CodeableConcept }, // Body part laterality icon
+    "specimen" : [{ Reference(Specimen) }], // Specimen imaged
+    "started" : "<dateTime>", // When the series started
+    "performer" : [{ // Who performed the series
+      "function" : { CodeableConcept }, // Type of performance
+      "actor" : { Reference(CareTeam|Device|HealthcareService|Organization|
+     Patient|Practitioner|PractitionerRole|RelatedPerson) } // R!  Who performed the series
+    }],
+    "instance" : [{ // A single SOP instance from the series
+      "uid" : "<id>", // R!  DICOM SOP Instance UID
+      "sopClass" : { Coding }, // R!  DICOM class type icon
+      "number" : "<unsignedInt>", // The number of this instance in the series
+      "title" : "<string>" // Description of instance
+    }]
+  }]
+}
+|||
+{
+  "resourceType" : "MedicationRequest",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // External ids for this request
+  "basedOn" : [{ Reference(CarePlan|ImmunizationRecommendation|
+   MedicationRequest|ServiceRequest) }], // A plan or request that is fulfilled in whole or in part by this medication request
+  "priorPrescription" : { Reference(MedicationRequest) }, // Reference to an order/prescription that is being replaced by this MedicationRequest
+  "groupIdentifier" : { Identifier }, // Composite request this is part of
+  "status" : "<code>", // R!  active | on-hold | ended | stopped | completed | cancelled | entered-in-error | draft | unknown
+  "statusReason" : { CodeableConcept }, // Reason for current status
+  "statusChanged" : "<dateTime>", // When the status was changed
+  "intent" : "<code>", // R!  proposal | plan | order | original-order | reflex-order | filler-order | instance-order | option
+  "category" : [{ CodeableConcept }], // Grouping or category of medication request
+  "priority" : "<code>", // routine | urgent | asap | stat
+  "doNotPerform" : <boolean>, // True if patient is to stop taking or not to start taking the medication
+  "medication" : { CodeableReference(Medication) }, // R!  Medication to be taken
+  "subject" : { Reference(Group|Patient) }, // R!  Individual or group for whom the medication has been requested
+  "informationSource" : [{ Reference(Organization|Patient|Practitioner|
+   PractitionerRole|RelatedPerson) }], // The person or organization who provided the information about this request, if the source is someone other than the requestor
+  "encounter" : { Reference(Encounter) }, // Encounter created as part of encounter/admission/stay
+  "supportingInformation" : [{ Reference(Any) }], // Information to support fulfilling of the medication
+  "authoredOn" : "<dateTime>", // When request was initially authored
+  "requester" : { Reference(Device|Organization|Patient|Practitioner|
+   PractitionerRole|RelatedPerson) }, // Who/What requested the Request
+  "reported" : <boolean>, // Reported rather than primary record
+  "performerType" : { CodeableConcept }, // Desired kind of performer of the medication administration
+  "performer" : [{ Reference(CareTeam|DeviceDefinition|HealthcareService|
+   Organization|Patient|Practitioner|PractitionerRole|RelatedPerson) }], // Intended performer of administration
+  "device" : [{ CodeableReference(DeviceDefinition) }], // Intended type of device for the administration
+  "recorder" : { Reference(Practitioner|PractitionerRole) }, // Person who entered the request
+  "reason" : [{ CodeableReference(Condition|Observation) }], // Reason or indication for ordering or not ordering the medication
+  "courseOfTherapyType" : { CodeableConcept }, // Overall pattern of medication administration
+  "insurance" : [{ Reference(ClaimResponse|Coverage) }], // Associated insurance coverage
+  "note" : [{ Annotation }], // Information about the prescription
+  "renderedDosageInstruction" : "<markdown>", // Full representation of the dosage instructions
+  "effectiveDosePeriod" : { Period }, // Period over which the medication is to be taken
+  "dosageInstruction" : [{ Dosage }], // Specific instructions for how the medication should be taken
+  "dispenseRequest" : { // Medication supply authorization
+    "initialFill" : { // First fill details
+      "quantity" : { Quantity(SimpleQuantity) }, // First fill quantity
+      "duration" : { Duration } // First fill duration
+    },
+    "dispenseInterval" : { Duration }, // Minimum period of time between dispenses
+    "validityPeriod" : { Period }, // Time period supply is authorized for
+    "numberOfRepeatsAllowed" : "<unsignedInt>", // Number of refills authorized
+    "quantity" : { Quantity(SimpleQuantity) }, // Amount of medication to supply per dispense
+    "expectedSupplyDuration" : { Duration }, // Number of days supply per dispense
+    "dispenser" : { Reference(Organization) }, // Intended performer of dispense
+    "dispenserInstruction" : [{ Annotation }], // Additional information for the dispenser
+    "doseAdministrationAid" : { CodeableConcept } // Type of adherence packaging to use for the dispense
+  },
+  "substitution" : { // Any restrictions on medication substitution
+    // allowed[x]: Whether substitution is allowed or not. One of these 2:
+    "allowedBoolean" : <boolean>,
+    "allowedCodeableConcept" : { CodeableConcept },
+    "reason" : { CodeableConcept } // Why should (not) substitution be made icon
+  },
+  "eventHistory" : [{ Reference(Provenance) }] // A list of events of interest in the lifecycle
+}
+|||
+{
+  "resourceType" : "Practitioner",
+  // from Resource: id, meta, implicitRules, and language
+  // from DomainResource: text, contained, extension, and modifierExtension
+  "identifier" : [{ Identifier }], // An identifier for the person as this agent
+  "active" : <boolean>, // Whether this practitioner's record is in active use
+  "name" : [{ HumanName }], // The name(s) associated with the practitioner
+  "telecom" : [{ ContactPoint }], // A contact detail for the practitioner (that apply to all roles)
+  "gender" : "<code>", // male | female | other | unknown
+  "birthDate" : "<date>", // The date  on which the practitioner was born
+  // deceased[x]: Indicates if the practitioner is deceased or not. One of these 2:
+  "deceasedBoolean" : <boolean>,
+  "deceasedDateTime" : "<dateTime>",
+  "address" : [{ Address }], // Address(es) of the practitioner that are not role specific (typically home address)
+  "photo" : [{ Attachment }], // Image of the person
+  "qualification" : [{ // Qualifications, certifications, accreditations, licenses, training, etc. pertaining to the provision of care
+    "identifier" : [{ Identifier }], // An identifier for this qualification for the practitioner
+    "code" : { CodeableConcept }, // R!  Coded representation of the qualification icon
+    "period" : { Period }, // Period during which the qualification is valid
+    "issuer" : { Reference(Organization) } // Organization that regulates and issues the qualification
+  }],
+  "communication" : [{ // A language which may be used to communicate with the practitioner
+    "language" : { CodeableConcept }, // R!  The language code used to communicate with the practitioner
+    "preferred" : <boolean> // Language preference indicator
+  }]
+}

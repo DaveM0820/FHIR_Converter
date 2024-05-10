@@ -1,0 +1,3 @@
+patient_id,sex,systemic_initial_indication,became_palliative,active
+b,F  ,Palliative,0,0
+a,F  ,Neoadjuvant,1,1

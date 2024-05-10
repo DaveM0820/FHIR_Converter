@@ -1,0 +1,19 @@
+patient_id,encounter_id,location,provider_type,activity_description
+b,1,H D Clinic,ONC-SYS,"Breast New Pt, Medical Oncology"
+b,2,H E Clinic,GPO-PA,Cross Referral to another service
+b,3,H D Clinic,Rad Oncologist,"Breast Cross Referral, Radiation Oncology"
+b,4,H SCCU,SocWrk,Telephone Cross Referral w/o pt
+b,5,H A Clinic,Rad Oncologist,Care Plan
+a,1,H D Clinic,ONC-SYS,"Breast New Consult, Medical Oncology"
+a,2,H D Clinic,ONC-SUR,Follow-up Appointment
+a,3,H D Clinic,ONC-SYS,Chemo Teaching
+a,4,H D Clinic,ONC-SYS,"Clinic Exam, patient on Chemo"
+a,5,H D Clinic,ONC-SUR,Care Plan
+a,6,H D Clinic,ONC-SYS,"Clinic Exam, patient on Chemo"
+a,7,H D Clinic,Rad Oncologist,"Breast Cross Referral, Radiation Oncology"
+a,8,H PTREV,Rad Oncologist,Radiation Patient Review
+a,9,H D Clinic,ONC-SYS,Follow-up Appointment
+a,10,H D Clinic,ONC-SYS,Care Plan
+a,11,H PTREV,Rad Oncologist,Radiation Patient Review
+a,12,H D Clinic,ONC-SYS,Follow-up Appointment
+a,13,H D Clinic,ONC-SYS,Follow-up with Injection

@@ -1,0 +1,84 @@
+Name: ONE, PATIENT 
+Patient ID/Acct #/Req #:H000000001 / HX000001/01 / 01-0000001  
+DOB-Sex-Age:   16/08/1975 - F - 43  
+Pt. Location:HO-MAMMO  
+Referring Dr: Two, Provider MD, CCFP 
+Date of Exam:   01/09/18
+  
+Report Status: Signed  
+  
+-------------------------------------------------------------------------------------------
+  
+Procedures: 1709-0012 BACUS/BAC U/S BREAST LEFT  
+ 1709-0016 BACMAMMO/BAC MAMMOGRAM BILATERAL 2V EA  
+  
+  
+ BAC MAMMOGRAM BILATERAL 2V EA, BAC U/S BREAST LEFT      
+   
+ BREAST ASSESSMENT      
+   
+ CLINICAL INDICATION: 43-year-old female. History as per the technologist's notes  
+ indicates left breast lump for a couple of weeks.  
+   
+ FINDINGS:  
+   
+ Bilateral mammogram:  
+   
+ Left breast: There are segmental pleomorphic calcifications at the 9:00
+ position. These span over a length of up to 12 cm on the CC projection. There  
+ appears to be 3 separate clusters of pleomorphic calcifications, the largest  
+ approximately 5.3 cm from nipple where there is an associated high density,  
+ spiculated mass with indistinct borders.   
+   
+ There is another area of suspicious pleomorphic calcifications at the 6:00  
+ position concerning for multicentric disease. This region measures up to 1 cm on  
+ the CC projection.  
+   
+ Skin thickening noted. There are also enlarged left axillary lymph nodes which  
+ contain calcifications.  
+   
+ Left breast: No suspicious masses, calcifications or architectural distortion.  
+   
+ Ultrasound:  
+   
+ In the region of palpable concern, 9:00, is an irregular hypoechoic mass which  
+ contains calcifications and internal vascularity measuring 2.2 x 2.4 x 1.9 cm.  
+ 2.7 cm separate from this, in the retroareolar region at 9:00, is another  
+ hypoechoic mass containing calcifications measuring 1.6 x 1.4 x 0.9 cm.  
+ Together, these 2 abnormal masses span a length of 6.8 cm.  
+   
+ There is abnormal left axillary lymph node measuring 4.4 x 1.9 x 2.5 cm with a  
+ thickened cortex, measuring 1.1 cm, which contains calcifications. A second  
+ abnormal appearing lymph node measuring 1.0 x 0.8 x 0.7 cm is also seen. A few  
+ other smaller abnormal appearing lymph nodes are also identified in the axilla.  
+   
+ INTERPRETATION:  
+   
+ The patient's palpable concern correlates to an irregular, spiculated, 2.9 cm  
+ mass at the 9:00 position in the left breast. A separate abnormal 1.3 cm area at 
+ 9:00, in the retroareolar region is also identified. This is associated with  
+ extensive segmental pleomorphic microcalcifications measuring up to 11 cm in  
+ keeping with locally advanced disease.  
+   
+ A separate focus of suspicious calcifications at the 6:00 position which is  
+ concerning for multicentric disease. Pathologic-appearing left axillary lymph  
+ nodes are identified. Abnormal skin thickening is present.  
+   
+ The patient has been booked for ultrasound-guided biopsy on Monday. At that time, 
+ focused sonography in the 6:00 region will be performed in the area of 
+ microcalcifications to see if an associated sonographic lesion is present in this area.  
+   
+ Consideration for MRI to assess for disease extent is advised.  
+   
+ BI-RADS: 5. Highly suggestive of malignancy. Biopsy has been arranged.  
+   
+   
+.  
+.Dictated by:  Provider Two
+.Dictated for:  Provider Three   
+.Signed by:    Provider Three   
+ Date Signed  01/09/18 1111  
+  
+Report Number:   0000-0001 
+CC: ONE, PROVIDER 
+  

@@ -1,0 +1,89 @@
+  
+PATIENT:   ONE, PATIENT              ID: H000000001        
+                           LOC:HO-OR  
+Address:   100 CHERRY TREE LANE, HAMILTON,ON L8V 1C3          
+Health Card:   1234567890-AB                                                DOB: 16/08/1975
+    Dictating Provider:   One, Provider MD, FRCSC  
+Attending Provider:   One, Provider 
+Family Physician:   Two, Provider 
+Date of Dictation:   01/03/19  
+Admission Date:     
+Discharge Date:   01/03/19  
+Visit Date:   01/03/19      Account:    HS000001/01     
+  
+  
+                                          OPERATIVE REPORT  
+  
+ DATE OF OPERATION:  01/3/2019  
+   
+ SURGEON:  
+ Dr. Provider One  
+   
+ ASSISTANT:  
+ Dr. Provider Five  
+   
+ ANESTHETIST:  
+ Dr. Provider Six  
+   
+ ANESTHETIC:  
+ General  
+   
+ PREOPERATIVE DIAGNOSIS:  
+ Locally advanced right breast cancer post neoadjuvant chemotherapy.  
+   
+ NAME OF PROCEDURE:  
+ Left modified radical mastectomy including left axillary lymph node dissection.  
+   
+ DESCRIPTION OF PROCEDURE:  
+ The surgical safety checklist was completed.  Prophylactic antibiotics and Heparin were  
+ given.  The surgical pause was again completed.  The righ breast, chest wall, proximal  
+ arm and axilla were prepped and draped in the usual sterile technique.  The skin ellipse  
+ was measured out to include the previous biopsy, nipple areolar complex and any redundant  
+ skin.  There were 2 skin lesions medially that I excised which may have been impacted by  
+ the dressing postoperatively given their proximity to the mastectomy incision.  They were  
+ sent in formalin.  
+
+ A 15 blade scalpel was used to make the incision.  Skin hooks were placed.  Dissection 
+ was carried superiorly to the inferior aspect of the clavicle, medially to the sternum, 
+ inferiorly in inframammary fold and laterally to latissimus.   
+ 
+ The entire breast was taken off the chest wall, including pectoralis fascia.  Laterally  
+ the pectoralis major and minor were elevated.  There were no interpectoral nodes. The medial  
+ pectoral bundle was preserved, along with the long thoracic nerve, thoracodorsal artery and 
+ vein. 
+
+ There was a bit of fibrofatty tissue along the subscapularis that was sent separately 
+ as deep tissue and again a complete level 1 and 2 axillary lymph node dissection with the 
+ specimen kept in continuity down to the confluence of the latissimus and serratus.  
+
+ A specimen was labeled short stitch superior long lateral which was left breast and axillary 
+ lymph nodes and deep tissue sent separately.  The skin lesions were also sent separately.  
+ The wound was checked for hemostasis.  Estimated blood loss was minimal.  Surgicel was placed 
+ after tranexamic acid solution.  Topical was irrigated into the cavity.  
+
+ Two Jackson-Pratt drains were placed, 1 into the axillary space and 1 across the chest wall 
+ with subdermal 3-0 Vicryl, 4-0 Monocryl.  The drain sutures were 2-0 nylon to secure the 
+ drains laterally and then Dermabond 4-0 Monocryl for final skin closure, Steri-Strips and 
+ pressure dressing with abdominal binder.  
+
+ No complications.  Sponge, instrument and needle counts were correct at the completion of the procedure.  
+   
+   
+ #0000001  
+   
+Provider One MD, MSc, FRCSC  
+  
+                                       
+  
+ONEPRO:KS:HR  /  01/03/19  /  0001-0001 
+  
+CC:  HEALTH RECORDS, One, Provider; Two, Provider
+  
+<Electronically signed by Provider One MD, FRCSC>   
+  
+  
+Report Authenticated Date/Time: 01/03/19 1111  
+  
+This information is directed in confidence solely to the person(s) named above, therefore
+this information should be considered strictly confidential.  If you receive this report in
+error, pleasenotify us immediately by telephone.    

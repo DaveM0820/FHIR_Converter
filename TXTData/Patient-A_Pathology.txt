@@ -1,0 +1,138 @@
+Specimen No. 18:SH0001
+Date Received: 01/09/18
+
+
+SOURCE OF SPECIMEN
+
+   A. Breast - Right mid 9 o'clock
+   B. Breast - Right mid axilla
+
+   Type of Specimen: Left Breast Core Biopsy A
+   Total Ischemic Time:   Hrs 12 Mins
+   Type of Specimen: Left Breast Core Biopsy B
+   Total Ischemic Time:  Hrs 11 Mins
+ 
+   Total Fixation Time:  > 72 hours
+
+ADDENDUM
+
+Addendum # 1                                Entered: 2018-09-01 11:11:11
+   Please see biomarker synoptic report for ER/PR and HER2 immunohistochemistry results,
+   interpreted and dictated by Dr. Provider One.
+   Dictated By: ONEPROVIDER
+Addendum Report
+Electronically Signed          ONEPROVIDER  2018-09-01 11:11:11
+
+
+CLINICAL HISTORY
+
+   Case Received From:  CIBC BAC
+   Radiologist:  Dr. Provider Seven
+   Referral Source:  FP/NP
+   Family History:  No 
+   Hormone Replacement:  No
+   Previous Biopsy:  No
+   Imaging Modality:  Ultrasound
+   Lesion(s) Measurements:  A:  3.1 x 1.9 x 2.7 cm.; B:  4.2 x 1.8 x 2.5 cm.
+   Radiology Findings:  A:  Calcification, mass, obscured border, spiculated, LABC; 
+   B:Lymph node
+   Number of Cores:  A:  4  B:  5
+   Number of Cassettes:  A: 1;  B:  2
+   Clinical Exam:  A:  Palpable;  B:  Non palpable
+   Is Sample Representative:  A:  Yes;  B:  Yes
+   Calcifications in Sample:  A:  Yes;  B:  N/A
+   No. of cores with calcification:  A: 4;  B:  N/A
+   No. of cassettes with calcification:  A: 1;  B:  N/A
+   Radiologic Impression:  (BIRADS) A:5;  B: N/A
+   Lymph Node Scanned:  Yes
+   Comments:  Palpable lesion biopsied.  Disease extent is 11.2 x 6.5 x 7.5 cm.
+   Pathologic Category:  [n/a]
+   Multidisciplinary Panel Recommendations:  [n/a]
+
+GROSS DESCRIPTION
+
+ 
+   The patient demographics and specimen identification on the requisition correspond to
+   that on the specimen container.  The specimen is received in two containers, all of
+   which are received in formalin.
+ 
+   A.The specimen is received in formalin in a container labelled "Right Breast Core
+   Biopsy A.". Within the container, one cassette, labelled with the patient's last
+   name, first initial on one side, birthdate on the other. The cassette is labelled as
+   to contain 4 cores. Submitted in toto in the original cassette labelled A. 
+ 
+   B.The specimen is received in formalin in a container labelled "Right Breast Core
+   Biopsy B.". Within the container, 2 cassettes, labelled with the patient's last name,
+   first initial on one side, birthdate on the other. The cassettes are labelled as to
+   contain 4 cores in cassette #one, 2 cores in cassette #2. Submitted in toto in their
+   original cassettes labelled B1-2. 
+
+   AJCC/UICC                                                           CAP Version: Jan 2018
+  
+                              Breast Biomarker Reporting Template
+  
+   Test(s) Performed
+   Estrogen Receptor (ER) Status
+   Progesterone Receptor (PgR) Status
+   HER2 by Immunohistochemistry
+ 
+       ER Results: Positive                                     Block A,B2
+         Percentage of Cells with Nuclear Positivity: Specify % 87 
+         Average Intensity of Staining: Strong
+       Test Type: Food and Drug Administration (FDA) cleared (specify test/vendor)
+         ER EP1 (Agilent/Dako)
+       Primary Antibody: Other (specify)
+         ER EP1
+ 
+       PgR Results: Positive                                      Block A,B2   
+         Percentage of Cells with Nuclear Positivity: Specify % 13
+         Average Intensity of Staining: Moderate
+       Test Type: Food and Drug Administration (FDA) cleared (specify test/vendor)
+         PGR 636 (Agilent/Dako)
+       Primary Antibody: PgR 636
+ 
+       HER2 IHC Results: Negative (Score 1+)                                           Block A,B2        
+       Test Type: Food and Drug Administration (FDA) cleared (specify test/vendor)
+         Hercep test kit (Her2) (Agilent/Dako)
+       Primary Antibody: HercepTest (A0485)
+ 
+   Cold Ischemia and Fixation Times
+     Do not meet requirements specified in latest version of the ASCO /
+      CAP Guidelines
+  
+   Fixative: Formalin
+  
+
+DIAGNOSIS
+
+   A. Breast (RIGHT, MID 9 o'clock), needle core biopsy: 
+   -INVASIVE AND IN SITU DUCTAL CARCINOMA-SEE COMMENT 
+   -Microcalcifications present, associated with DCIS
+ 
+   Comment: In this limited needle core biopsy sampling, the invasive ductal carcinoma
+   appears of no special type, and has an estimated overall Modified Bloom and
+   Richardson Histologic Tumor Grade of III (nuclear score 2/3, mitotic score 2/3,
+   tubular score 3/3). Ductal carcinoma in situ with nuclear grade 2/3, associated
+   comedonecrosis, is also present and associated with the invasive ductal carcinoma.
+   Definitive tumor subtyping/grading is deferred to the excisional biopsy specimen.
+ 
+   Hormone receptors (ER and PR) and HER2 will be reported as an addendum.
+ 
+   B. Axilla (RIGHT, MID), needle core biopsy: 
+   -POSITIVE FOR DUCTAL CARCINOMA 
+   -No definite lymphoid tissue identified 
+ 
+   Hormone receptors (ER and PR) and HER2 will be reported as an addendum.
+ 
+   ********************PATHOLOGIC/RADIOLOGIC CORRELATION******************** 
+   The case has been reviewed by the Pathology/Radiology Panel. As per the Radiologists
+   present (Drs. Three and Four), the presented pathological findings CORRELATE
+   with the radiographic findings. 
+ 
+   As such, the Radiologists recommend surgical consult and MRI.
+ 
+   For further information, please refer to the patient's clinical chart and radiology
+   notes.
+
+
+Final Signed                        

@@ -1,0 +1,89 @@
+  
+PATIENT:   ONE, PATIENT               ID: H000000001        
+                           LOC: HO-BAC  
+Address:   100 CHERRY TREE LANE, HAMILTON,ON L8V 1C3      
+Health Card:   1234567890-AB                                                 DOB: 16/08/1975 
+    Dictating Provider:   One, Provider MD, FRCSC  
+Attending Provider:   One, Provider
+Family Physician:   Two, Provider  
+Date of Dictation:   01/10/18
+Admission Date:     
+Discharge Date:     
+Visit Date:   01/10/18      Account:    HC000001/01   
+  
+  
+ CONSULTATION REPORT  
+  
+  
+ DATE OF CONSULTATION:  01/10/2018  
+   
+ Patient One is a pleasant 43-year-old female who is seen at the breast assessment centre  
+ with a newly diagnosed left breast cancer, locally advanced invasive ductal carcinoma  
+ with in situ component and positive for metastases to the axillary lymph nodes.  The  
+ patient noticed some skin thickening in the left breast, approximately 8 weeks ago.  
+ No nipple discharge, no weight loss, no other constitutional signs.  
+   
+ GYNECOLOGICAL RISK FACTORS:  
+ Age of menarche 12, three full-term pregnancies, age of first pregnancy 32.  She did breast  
+ feed, birth control for 19 years.  Fertility medications.  No hormone replacement  
+ therapy.
+   
+ FAMILY HISTORY:  
+ Maternal grandfather with prostate, a maternal great grandfather with gastric cancer,  
+ father was adopted, so that part of the history is uncertain.  
+   
+ PAST MEDICAL HISTORY:  
+ Previous C-section and 2 D and Cs.  She is a nonsmoker, does not drink alcohol and has no  
+ allergies.  
+   
+ Clinical examination reveals a healthy-appearing female.  No scleral icterus, no head and  
+ neck adenopathy.  There is skin thickening and some peau d'orange in  
+ the outer lateral aspect of the right breast.  The palpable mass spans over 6.5 cm.  Please  
+ note this is less than the extent of disease seen on mammography and there is a palpable  
+ axillary lymph node, which measures about 3 cm.  No lymphedema, no chest wall, fixation.   
+ The contralateral left breast and axilla are clinically unremarkable.  Cardiorespiratory  
+ examination unremarkable and no hepatosplenomegaly.  
+   
+ Review of her imaging revealed abnormal pleomorphic microcalcifications spanning over  
+ 11.2 x 7.5 cm.  The lesion size was 2.6 cm, but underestimates the clinical findings as  
+ well as the mammographic finding.  The lymph node measured 4.6 cm with cortical  
+ thickening.  Numerous lymph nodes were commented on; only the largest was biopsied.  
+   
+ The pathology revealed invasive ductal carcinoma, ER/PR positive, HER2/neu negative  
+ reviewed at the radiology pathology correlation rounds.  
+   
+ A detailed discussion was undertaken with Patient and her husband.  We discussed the  
+ results of the pathology using pamphlets and diagrams.  She is a candidate for the PET  
+ ABC study again, a voluntary study looking at PET CT versus conventional CT scanning and  
+ bone scan.  Laboratory investigation of the tumor markers would also be recommended and  
+ an expedited medical and radiation oncology referral would be also my recommendation  
+ 
+ Given this was locally advanced disease; neoadjuvant treatment would be the favoured  
+ approach again, given the size and the lymph node metastases.  This will be reviewed by  
+ the medical oncologist.  I will see her mid treatment.  We have also arranged for an MRI  
+ of the breast to further assess the contralateral breast.  It will be unlikely to change  
+ management on the right side given again, the extent of disease.  I offered supportive  
+ care and social work referral. I will see her post-staging investigations and mid  
+ treatment pending the results of those investigations.  
+   
+   
+   
+ #0000001 
+   
+ Provider One MD, MSc, FRCSC  
+  
+                                       
+  
+ONEPRO:AGE:HR  /  01/10/18  /  0001-0001 (##)
+  
+CC:  HEALTH RECORDS, One, Provider; Two, Provider  
+  
+<Electronically signed by Provider One MD, FRCSC>   
+  
+  
+Report Authenticated Date/Time: 01/10/18 1111
+  
+This information is directed in confidence solely to the person(s) named above, therefore
+this information should be considered strictly confidential.  If you receive this report in
+error, please notify us immediately by telephone.    
+  

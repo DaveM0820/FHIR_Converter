@@ -1,0 +1,78 @@
+Name:TWO, PATIENT
+Patient ID/Acct #/Req #:H000000001 / HE000001/01 / 01-0000001
+DOB-Sex-Age:   25/04/1963 - F - 51
+Pt. Location:HO-ER
+Date of Exam:   01/07/14
+ 
+Report Status: Signed
+ 
+-------------------------------------------------------------------------------------------
+---------
+--------------------------------------------------------
+ 
+Procedures: 3007-0103 MRI/MR SPI 3SEG COMPL SERIES W/GAD
+ 
+MRI OF THE WHOLE SPINE
+ Routine sequences
+ 
+ INDICATION: 51-year-old with metastatic breast cancer.
+ 
+ FINDINGS: No previous available
+ 
+ The spinal alignment is normal. There is 50% compression fracture involving T2
+ associated with posterior convex margin and mild retropulsion effacing the
+ anterior CSF with no current evidence of cord compression. There is a small
+ element of extra osseous soft tissue component at the anterior aspect of the
+ vertebral body. There is obliteration of bilateral neural foramen at T2-T3 level
+ probably related to bony expansion. I cannot confidently exclude extra dural
+ soft tissue resulting in neural foraminal effacement. The spinal cord is normal
+ in signal at this level with only a small trace of CSF seen at the posterior
+ aspect of the spinal cord at this level..
+ 
+ There is suspicious nodularity seen in the cauda equina best demonstrated on the
+ sagittal view examination in particular at L3 level [series 4 image 9]. The
+ finding cannot be confirmed on the axial examination.
+ 
+ There is epidural lipomatosis at L5-S1 level with narrowing of the central
+ canal.
+ 
+ 10% superior endplate depression at T6 level. There is 20% height loss at T11
+ with mild superior and inferior endplate depression at T13. 20% height loss also
+ seen at L5 level. There is also mild superior endplate depression at L4 level
+ centrally. No retropulsion seen at any of these level.
+ 
+ There is degenerative disc/endplate change from C3-C7 level resulting in mild to
+ moderate central canal narrowing.
+ 
+ Note is made of extensive subcutaneous soft tissue masses/ deposits along the
+ chest wall and in the right upper arm largest in the posterior neck at C3-C4
+ level measuring 3.4 x 2.1 cm. 
+ 
+ From this limited examination, there is a suspicion of a left hilar mass
+ resulting in partial collapse of the left upper lobe.
+ 
+ OPINION:
+ Diffuse osseous metastasis throughout the visualized skeleton. There is 40%
+ compression fracture at T2 level with retropulsion resulting in severe central
+ canal stenosis with no current evidence of cord compression. The patient however
+ is at risk of impending cord compression. There is suspicious paravertebral soft
+ tissue at the anterior aspect of T2. Obliteration of the neural foramen at T2-T3
+ level which may be related to a combination of bony expansion and extra dural
+ soft tissue.
+ 
+ Questionable nodules involving the cauda equina concerning of leptomeningeal
+ disease involvement/drop metastasis. Unfortunately due to renal impairment [GFR
+ less than 30], we cannot administer intravenous gadolinium to confirm/excluded
+ this finding.
+ 
+ The findings have been discussed with Dr. Provider Six
+ 
+ 
+.
+.Dictated by:  
+.Dictated for:  Provider Seven MD
+.Signed by:    Provider Seven MD
+ Date Signed  01/07/14 11:11
+ 
+Report Number:   0001-0001
+CC: Four, Provider; Six, Provider
