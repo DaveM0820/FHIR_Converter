@@ -6,7 +6,95 @@ from os import listdir
 from os.path import isfile, join
 import csv
 import pathlib
+from flask import Flask, render_template, Request, jsonify, Response, request
+from flask_socketio import SocketIO, emit
 
+app = Flask(__name__)
+socketio = SocketIO(app)
+resourceTypes = []
+unFormattedData = []
+formattedData = []
+
+@app.route('/', methods=['GET'])
+def index():
+    # Initial values set here just to fill the form initially
+    chunk_size = 2000
+    num_attempts = 2
+    categories = ""
+    unstructured_data = ""
+    json_output = ""
+    return render_template('index.html', chunk_size=chunk_size, num_attempts=num_attempts, categories=categories, unstructured_data=unstructured_data, json_output=json_output)
+
+
+@app.route('/update_values', methods=['POST'])
+def update_values():
+    chunk_size = request.form.get('chunkSize', type=int)
+    num_attempts = request.form.get('numAttempts', type=int)
+    return jsonify({
+        'chunk_size': chunk_size,
+        'num_attempts': num_attempts,
+        'categories': f"Categories for Chunk Size: {chunk_size} {resourceTypes}",
+        'unstructured_data': f"Unstructured Data for {num_attempts} attempts {unFormattedData}",
+        'json_output': f"{formattedData}"
+    })
+
+@app.route('/process_data', methods=['POST'])
+def process_data():
+    localData = loadTextData()
+    localData += loadCSVData()
+    splitDataResult = splitData(localData);
+    chunk = 0
+    validResourceTypes = "" #A list of valid FHIR resource types
+    validResourceExamples = "" # dictionary matching resource type to exmaple valid data
+    #Get Resource Types from the spit data, and then get the meta summary of the resource types
+    #Get list of all possible resource types and include in prompt
+    for i in splitDataResult:
+        print("\nResources for Chunk 1: " + (str)(chunk + 1) + "\n")
+        resources = determineResourceTypes(splitDataResult[chunk])
+        resourceTypes.append(resources)
+        print(resources)
+        chunk+=1
+    allResourceTypes = " ".join([str(item) for item in resourceTypes])
+    print("\nMetaSummary Resources: " + (str)(chunk + 1) + "\n")
+
+    finalResourceTypes = resourceType_meta_summary(allResourceTypes)
+    print(finalResourceTypes)
+    
+    #Get unformatted data for each chunk three times, compare the results and determine the most correct result
+    numAttempts = 2; 
+    chunk = 0
+    unFormattedDataattempts = []
+    for i in splitDataResult:
+        for j in range(numAttempts): 
+            print("\nUnformatted data for chunk " + (str)(chunk + 1) + ", Attempt: " + (str)(j + 1) + "\n")
+            attempt=extractData(splitDataResult[chunk],finalResourceTypes)
+            print(attempt)
+            unFormattedDataattempts.append(attempt)
+        allAttemptsForDataChunk = " ".join([str(item) for item in unFormattedDataattempts])
+        metaAnalysisOfChunk = extractedDataFinalResult(splitDataResult[chunk],allAttemptsForDataChunk)
+        unFormattedData.append(metaAnalysisOfChunk)
+        print("\nUnformatted data data for Chunk " + (str)(chunk + 1) + ", Final Result: ")
+        print(metaAnalysisOfChunk)
+        chunk+=1
+
+    #Format Data
+    numAttempts = 2; 
+    chunk = 0
+    for i in unFormattedData:
+        formattedDataAttempts = []
+        for j in range(numAttempts): 
+            print("\nFormatted data for Chunk " + (str)(chunk + 1) + ", Attempt: " + (str)(j + 1) + "\n")
+            attempt=formatData(unFormattedData[chunk])
+            print(attempt)
+            formattedDataAttempts.append(attempt)
+        allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
+        finalFormattedData = formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk])
+        formattedData.append(finalFormattedData)
+        print("\nFinal JSON for chunk " + (str)(chunk + 1) + ", Final Result: ")
+        print(metaAnalysisOfChunk)
+        chunk+=1
+    
+    return jsonify()
 
 client = OpenAI(
     api_key=""
@@ -44,17 +132,28 @@ def loadTextData():
     return words
 
 
-
-
 def determineResourceTypes(data):
+    prompt = (f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
+              f"Please format your response as follows:\n"
+              f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
+              f"\n"
+              f"{data}")
 
-        prompt = (f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
-                  f"Please format your response as follows:\n"
-                  f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
-                  f"\n"
-                  f"{data}")
-        response = client.chat.completions.create(model="gpt-3.5-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
+    stream = client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    results = []
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                emit('stream_response', {'data': chunk.choices[0].delta.content})
+
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return jsonify({"streamed_content": results})
 
 def resourceType_meta_summary(data):
         prompt = (f"You are an expert medical  data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
@@ -93,7 +192,7 @@ def formatData(data):
         return response.choices[0].message.content
 
 def formattedDataFinalResult(unformattedData, formattedResults):
-        prompt = (f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data. Look for errors and output the valid the FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request."
+        prompt = (f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid the FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
                   f"{unformattedData}"
                   f"{formattedResults}"
                   )
@@ -180,5 +279,5 @@ def main():
         chunk+=1
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    app.run(debug=True)
