@@ -7,6 +7,11 @@ from os.path import isfile, join
 import csv
 import pathlib
 from flask import Flask, render_template, request, jsonify
+from dotenv import load_dotenv
+import os
+
+load_dotenv()  # take environment variables from .env.
+api_key = os.getenv("API_KEY")
 
 app = Flask(__name__)
 
