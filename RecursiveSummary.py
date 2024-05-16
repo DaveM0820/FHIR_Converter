@@ -1,23 +1,64 @@
-import openai
-from openai import OpenAI 
 import os
+from openai import OpenAI
+from flask import Flask, Response, json, render_template, jsonify, request
 from pathlib import Path
 from os import listdir
 from os.path import isfile, join
 import csv
 import pathlib
-from flask import Flask, render_template, request, jsonify
-from dotenv import load_dotenv
-import os
+import asyncio
+import threading
+import time
+import json
 
-load_dotenv()  # take environment variables from .env.
-api_key = os.getenv("API_KEY")
-
+# Initialize Flask
 app = Flask(__name__)
+# Initialize OpenAI API key
+client = OpenAI()
+client.api_key = os.getenv('OPENAI_API_KEY')
+
+# Global variables
+resourceTypes = []
+unFormattedData = []
+formattedData = []
+done = False
+streamAllOutput = []
+chunkSize = 2000
+numAttempts = 2
+originalData = ""
+
+@app.route('/process_data', methods=['POST'])
+def process_data():
+    data = request.get_json()
+    global chunkSize, numAttempts, done, streamAllOutput
+    chunkSize = int(data['chunk_size'])
+    numAttempts = int(data['num_attempts'])
+    done = False
+    streamAllOutput = []
+
+    # Run the async process_data_async in a separate thread
+    threading.Thread(target=asyncio.run, args=(process_data_async(),)).start()
+
+    def generate():
+        while not done or streamAllOutput:
+            while streamAllOutput:
+                chunk, step, attempt = streamAllOutput.pop(0)
+                message = json.dumps({'chunk': chunk, 'step': step, 'attempt': attempt})
+                yield f"data: {message}\n\n"
+            time.sleep(0.1)
+
+    return Response(generate(), content_type='text/event-stream')
+
+@app.route('/load_data', methods=['GET'])
+def load_data():
+    global originalData
+    originalData = loadTextData() + loadCSVData()
+    word_count = len(originalData.split())
+    char_count = len(originalData)
+    return jsonify({'originalData': originalData, 'word_count': word_count, 'char_count': char_count})
 
 @app.route('/', methods=['GET'])
 def index():
-    # Initial values set here just to fill the form initially
     chunk_size = 2000
     num_attempts = 2
     categories = ""
@@ -25,55 +66,19 @@ def index():
     json_output = ""
     return render_template('index.html', chunk_size=chunk_size, num_attempts=num_attempts, categories=categories, unstructured_data=unstructured_data, json_output=json_output)
 
-
-@app.route('/update_values', methods=['POST'])
-def update_values():
-    chunk_size = request.form.get('chunkSize', type=int)
-    num_attempts = request.form.get('numAttempts', type=int)
-    return jsonify({
-        'chunk_size': chunk_size,
-        'num_attempts': num_attempts,
-        'categories': f"Categories for Chunk Size: {chunk_size}",
-        'unstructured_data': f"Unstructured Data for {num_attempts} attempts",
-        'json_output': "{}"
-    })
-
-@app.route('/process_data', methods=['POST'])
-def process_data():
-    chunk_size = request.form.get('chunkSize', type=int)
-    num_attempts = request.form.get('numAttempts', type=int)
-    # Call your data processing functions here
-    data = "Sample data that needs processing"  # Replace with actual data retrieval
-    processed_data = determineResourceTypes(data)  # Example function call
-    return jsonify({
-        'chunk_size': chunk_size,
-        'num_attempts': num_attempts,
-        'categories': f"Categories Processed for Chunk Size: {chunk_size}",
-        'unstructured_data': f"Unstructured Data Processed for {num_attempts} attempts",
-        'json_output': processed_data  # Assume this is the JSON output
-    })
-
-client = OpenAI(
-    api_key=""
-)
-
-chunkSize = 2000; #How many words per chunk
-
 def loadCSVData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
-
     all_text = ""
     for filename in os.listdir(path):
         if filename.endswith('.csv'):
-            all_text += "\n" + filename + "\n"
             file_path = os.path.join(path, filename)
             try:
-                # Convert all data to string and concatenate
-                all_text += " ".join(data.astype(str).values.flatten())
+                with open(file_path, 'r') as file:
+                    reader = csv.reader(file)
+                    all_text += " ".join([str(row) for row in reader])
             except Exception as e:
                 print(f"Failed to read {filename}: {e}")
     return all_text
-
 
 def loadTextData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
@@ -84,145 +89,190 @@ def loadTextData():
         with open(file_path, 'r') as f:
             file_content = f.read()
             all_lines.append(file_content.splitlines())
-    # print (all_lines)
     words = " ".join([str(item) for item in all_lines])
     return words
 
+async def process_data_async():
+    global done
+    splitDataResult = splitData(originalData)
+    chunk = 0
+    for i in splitDataResult:
+        resources = await determineResourceTypes(splitDataResult[chunk], chunk + 1)
+        resourceTypes.append(resources)
+        chunk += 1
+    allResourceTypes = " ".join([str(item) for item in resourceTypes])
+    finalResourceTypes = await resourceType_meta_summary(allResourceTypes, len(resourceTypes)+1 )
+    chunk = 0
+    for i in splitDataResult:
+        unFormattedDataattempts = []
+        for j in range(numAttempts):
+            attempt = await extractData(splitDataResult[chunk], finalResourceTypes, j + 1)
+            unFormattedDataattempts.append(attempt)
+        allAttemptsForDataChunk = " ".join([str(item) for item in unFormattedDataattempts])
+        metaAnalysisOfChunk = await extractedDataFinalResult(splitDataResult[chunk], allAttemptsForDataChunk, len(unFormattedDataattempts)+1)
+        unFormattedData.append(metaAnalysisOfChunk)
+        chunk += 1
+    chunk = 0
+    for i in unFormattedData:
+        formattedDataAttempts = []
+        for j in range(numAttempts):
+            attempt = await formatData(unFormattedData[chunk], j + 1)
+            formattedDataAttempts.append(attempt)
+        allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
+        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk], len(formattedDataAttempts)+1)
+        formattedData.append(finalFormattedData)
+        chunk += 1
+    done = True
 
+async def determineResourceTypes(data, attempt):
+    prompt = (
+        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
+        f"Please format your response as follows:\n"
+        f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
+        f"\n"
+        f"{data}"
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-def determineResourceTypes(data):
+async def resourceType_meta_summary(data, attempt):
+    prompt = (
+        f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
+        f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
+        f"Summary: put your summary of the included data here\n"
+        f"{data}"
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-        prompt = (f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
-                  f"Please format your response as follows:\n"
-                  f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
-                  f"\n"
-                  f"{data}")
-        response = client.chat.completions.create(model="gpt-3.5-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
+async def extractData(data, categories, attempt):
+    prompt = (
+        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
+        f"Please only include data for resources that fall into the following categories: {categories}\n"
+        f"Please format your response as follows:\n"
+        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
+        f"Data(key:value) This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
+        f"{data}"
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-def resourceType_meta_summary(data):
-        prompt = (f"You are an expert medical  data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
-                  f"Please list the valid FHIR4 categorie in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
-                  f"Summary: put your summary of the included data here\n"
-                  f"{data}")
-        response = client.chat.completions.create(model="gpt-3.5-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
+async def extractedDataFinalResult(chunk, summaries, attempt):
+    prompt = (
+        f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyze the results below, look for errors, and reply with the correct list of resources,"
+        f"Here is the data being summarized: {chunk}\n"
+        f"Here are the attempts at extracting the relevant data: {summaries}\n"
+        f"Please format your response as follows:\n"
+        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
+        f"Key: value - This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-def extractData(data, categories):
-        prompt = (f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
-                  f"Please only include data for resource that fall into the following categories: " + categories + "\n"
-                  f"Please format your response as follows:\n"
-                  f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
-                  f"Data(key:value) This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
-                  f"{data}")
-        response = client.chat.completions.create(model="gpt-3.5-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
+async def formatData(data, attempt):
+    prompt = (
+        f"Your goal is to convert the data below into a valid FHIR4 resource bundle. Please structure your output in valid JSON that adheres to the FHIR4 standard. Accuracy and completeness is essential. This task will fail if the server rejects the request."
+        f"{data}"
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-def extractedDataFinalResult(chunk, summaries):
-        prompt = (f"You are an expert medical  data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyize the results below, look for errors, and reply with the correct list of resources,"
-                  f"Here is the data being summarized: {chunk}\n"
-                  f"Here are the attempts at extracting the relevant data: {summaries}\n"
-                  f"Please format your response as follows:\n"
-                  f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
-                  f"Key: value - This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
-                  f"")
-        response = client.chat.completions.create(model="gpt-4-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
-    
-def formatData(data):
+async def formattedDataFinalResult(unformattedData, formattedResults, attempt):
+    prompt = (
+        f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
+        f"{unformattedData}"
+        f"{formattedResults}"
+    )
+    results = []
+    stream = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": prompt}],
+        stream=True,
+    )
+    try:
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                results.append(chunk.choices[0].delta.content)
+                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt))
+    except Exception as e:
+        print(f"Error during streaming: {e}")
+    return ''.join(results)
 
-        prompt = (f"Your goal is to convert the data below into valid FHIR4 resource bundle. Please structure your output in valid JSON that adheres to the FHIR4 standard. Accuracy and competeness is essential. This task will fail if the server rejects the request."
-                  f"{data}")
-        response = client.chat.completions.create(model="gpt-3.5-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content
-
-def formattedDataFinalResult(unformattedData, formattedResults):
-        prompt = (f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid the FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
-                  f"{unformattedData}"
-                  f"{formattedResults}"
-                  )
-        response = client.chat.completions.create(model="gpt-4-turbo",messages=[{"role": "system", "content": prompt},])
-        return response.choices[0].message.content    
-    
 def splitData(words):
-    words_array = words.split(" ") 
-    groups= []
+    words_array = words.split(" ")
+    groups = []
     temp_group = []
     for word in words_array:
         temp_group.append(word)
         if len(temp_group) == chunkSize:
-            
             groups.append(temp_group)
-            
             temp_group = []
-    
     if temp_group:
         groups.append(temp_group)
-    newArray = [] 
+    newArray = []
     for i, group in enumerate(groups):
         newArray.append(" ".join([str(item) for item in groups[i]]))
-
-    #print(groups)
     return newArray
-
-def main():
-    localData = loadTextData()
-    localData += loadCSVData()
-    splitDataResult = splitData(localData);
-    chunk = 0
-    resourceTypes = []
-    validResourceTypes = "" #A list of valid FHIR resource types
-    validResourceExamples = "" # dictionary matching resource type to exmaple valid data
-    #Get Resource Types from the spit data, and then get the meta summary of the resource types
-    #Get list of all possible resource types and include in prompt
-    for i in splitDataResult:
-        print("\nResources for Chunk 1: " + (str)(chunk + 1) + "\n")
-        resources = determineResourceTypes(splitDataResult[chunk])
-        resourceTypes.append(resources)
-        print(resources)
-        chunk+=1
-    allResourceTypes = " ".join([str(item) for item in resourceTypes])
-    print("\nMetaSummary Resources: " + (str)(chunk + 1) + "\n")
-
-    finalResourceTypes = resourceType_meta_summary(allResourceTypes)
-    print(finalResourceTypes)
-    
-    #Get unformatted data for each chunk three times, compare the results and determine the most correct result
-    numAttempts = 2; 
-    chunk = 0
-    unFormattedData = []
-    for i in splitDataResult:
-        unFormattedDataattempts = []
-        for j in range(numAttempts): 
-            print("\nUnformatted data for chunk " + (str)(chunk + 1) + ", Attempt: " + (str)(j + 1) + "\n")
-            attempt=extractData(splitDataResult[chunk],finalResourceTypes)
-            print(attempt)
-            unFormattedDataattempts.append(attempt)
-        allAttemptsForDataChunk = " ".join([str(item) for item in unFormattedDataattempts])
-        metaAnalysisOfChunk = extractedDataFinalResult(splitDataResult[chunk],allAttemptsForDataChunk)
-        unFormattedData.append(metaAnalysisOfChunk)
-        print("\nUnformatted data data for Chunk " + (str)(chunk + 1) + ", Final Result: ")
-        print(metaAnalysisOfChunk)
-        chunk+=1
-
-    #Format Data
-    numAttempts = 2; 
-    chunk = 0
-    formattedData = []
-    for i in unFormattedData:
-        formattedDataAttempts = []
-        for j in range(numAttempts): 
-            print("\nFormatted data for Chunk " + (str)(chunk + 1) + ", Attempt: " + (str)(j + 1) + "\n")
-            attempt=formatData(unFormattedData[chunk])
-            print(attempt)
-            formattedDataAttempts.append(attempt)
-        allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
-        finalFormattedData = formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk])
-        formattedData.append(finalFormattedData)
-        print("\nFinal JSON for chunk " + (str)(chunk + 1) + ", Final Result: ")
-        print(metaAnalysisOfChunk)
-        chunk+=1
-
 
 if __name__ == '__main__':
     app.run(debug=True)
