@@ -22,6 +22,10 @@
             box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
             transition: border 0.3s, box-shadow 0.3s;
         }
+        .progress-container {
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
     </style>
 </head>
 <body>
@@ -50,6 +54,13 @@
                 </div>
                 <button id="processData" class="btn btn-primary">Process Data</button>
             </form>
+            <div class="progress-container">
+                <h3>Progress:</h3>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+                <span id="progressStats"></span>
+            </div>
             <div class="row mt-4">
                 <div class="col">
                     <h3>Categories:</h3>
@@ -68,6 +79,9 @@
     </div>
 </body>
 <script>
+let totalCalls = 0;
+let completedCalls = 0;
+
 document.getElementById("processData").addEventListener("click", async (e) => {
     e.preventDefault();
 
@@ -116,6 +130,7 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     if (attempt != currentAttempt) {
                         currentAttempt = attempt;
                         output += "\n <h2>Attempt " + currentAttempt + "</h2>\n";
+                        completedCalls++;
                     }
 
                     if (step != currentStep) {
@@ -130,6 +145,11 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     output += chunk;
                     currentField.val(output);
                     scrollToBottom(currentField[0]); // Scroll to bottom of the current field
+
+                    // Update progress bar
+                    const progress = (completedCalls / totalCalls) * 100;
+                    $('#progressBar').css('width', `${progress}%`).attr('aria-valuenow', progress);
+                    $('#progressStats').text(`Completed API calls: ${completedCalls}/${totalCalls}`);
                 } catch (err) {
                     console.error("JSON parse error:", err);
                 }
@@ -150,7 +170,8 @@ async function loadData() {
     const numChunks = Math.ceil(data.char_count / chunkSize);
     const estimatedCalls = numChunks * numAttempts;
 
-    $('#dataStats').append(`, Estimated API calls: ${estimatedCalls}`);
+    $('#dataStats').append(`, Chunks: ${numChunks}, Estimated API calls: ${estimatedCalls}`);
+    return { numChunks, estimatedCalls };
 }
 
 function updateUI(data) {
@@ -162,14 +183,23 @@ function updateUI(data) {
 }
 
 $('input[type="range"]').on('input', function () {
-    const form = $('#dataForm').serialize();
-    $.post('/update_values', form, function (data) {
-        updateUI(data);
-    }, 'json');
+    const chunkSize = $('#chunkSize').val();
+    const numAttempts = $('#numAttempts').val();
+
+    $('#chunkSizeValue').text(chunkSize);
+    $('#numAttemptsValue').text(numAttempts);
+
+    loadData().then(({ numChunks, estimatedCalls }) => {
+        const estimatedAPICalls = numChunks * numAttempts;
+        $('#dataStats').append(`, Chunks: ${numChunks}, Estimated API calls: ${estimatedAPICalls}`);
+        totalCalls = estimatedAPICalls;
+    });
 });
 
 $(document).ready(function() {
-    loadData();
+    loadData().then(({ estimatedCalls }) => {
+        totalCalls = estimatedCalls;
+    });
 });
 </script>
 </html>
