@@ -42,8 +42,8 @@ def process_data():
     def generate():
         while not done or streamAllOutput:
             while streamAllOutput:
-                chunk, step, attempt = streamAllOutput.pop(0)
-                message = json.dumps({'chunk': chunk, 'step': step, 'attempt': attempt})
+                token, step, attempt, chunk_num = streamAllOutput.pop(0)
+                message = json.dumps({'token': token, 'step': step, 'attempt': attempt, 'chunk_num': chunk_num})
                 yield f"data: {message}\n\n"
             time.sleep(0.1)
 
@@ -97,34 +97,37 @@ async def process_data_async():
     splitDataResult = splitData(originalData)
     chunk = 0
     for i in splitDataResult:
-        resources = await determineResourceTypes(splitDataResult[chunk], chunk + 1)
-        resourceTypes.append(resources)
+        resourceAttempts = []
+        for j in range(numAttempts):
+            resources = await determineResourceTypes(splitDataResult[chunk], j + 1, chunk + 1)
+            resourceAttempts.append(resources)
+        allResourcesForChunk = " ".join([str(item) for item in resourceAttempts])
+        metaAnalysisOfChunk = await resourceType_meta_summary(splitDataResult[chunk], allResourcesForChunk)
+        resourceTypes.append(metaAnalysisOfChunk)
         chunk += 1
-    allResourceTypes = " ".join([str(item) for item in resourceTypes])
-    finalResourceTypes = await resourceType_meta_summary(allResourceTypes, len(resourceTypes)+1 )
     chunk = 0
     for i in splitDataResult:
         unFormattedDataattempts = []
         for j in range(numAttempts):
-            attempt = await extractData(splitDataResult[chunk], finalResourceTypes, j + 1)
+            attempt = await extractData(splitDataResult[chunk], resourceTypes[chunk], j + 1, chunk + 1)
             unFormattedDataattempts.append(attempt)
         allAttemptsForDataChunk = " ".join([str(item) for item in unFormattedDataattempts])
-        metaAnalysisOfChunk = await extractedDataFinalResult(splitDataResult[chunk], allAttemptsForDataChunk, len(unFormattedDataattempts)+1)
+        metaAnalysisOfChunk = await extractedDataFinalResult(splitDataResult[chunk], allAttemptsForDataChunk, len(unFormattedDataattempts)+1, chunk + 1)
         unFormattedData.append(metaAnalysisOfChunk)
         chunk += 1
     chunk = 0
     for i in unFormattedData:
         formattedDataAttempts = []
         for j in range(numAttempts):
-            attempt = await formatData(unFormattedData[chunk], j + 1)
+            attempt = await formatData(unFormattedData[chunk], j + 1, chunk + 1)
             formattedDataAttempts.append(attempt)
         allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
-        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk], len(formattedDataAttempts)+1)
+        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk], len(formattedDataAttempts)+1, chunk + 1)
         formattedData.append(finalFormattedData)
         chunk += 1
     done = True
 
-async def determineResourceTypes(data, attempt):
+async def determineResourceTypes(data, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
         f"Please format your response as follows:\n"
@@ -142,12 +145,12 @@ async def determineResourceTypes(data, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def resourceType_meta_summary(data, attempt):
+async def resourceType_meta_summary(data, attempts):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
         f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
@@ -164,12 +167,12 @@ async def resourceType_meta_summary(data, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt, 1))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def extractData(data, categories, attempt):
+async def extractData(data, categories, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
         f"Please only include data for resources that fall into the following categories: {categories}\n"
@@ -188,12 +191,12 @@ async def extractData(data, categories, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def extractedDataFinalResult(chunk, summaries, attempt):
+async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyze the results below, look for errors, and reply with the correct list of resources,"
         f"Here is the data being summarized: {chunk}\n"
@@ -212,12 +215,12 @@ async def extractedDataFinalResult(chunk, summaries, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def formatData(data, attempt):
+async def formatData(data, attempt, chunk_num):
     prompt = (
         f"Your goal is to convert the data below into a valid FHIR4 resource bundle. Please structure your output in valid JSON that adheres to the FHIR4 standard. Accuracy and completeness is essential. This task will fail if the server rejects the request."
         f"{data}"
@@ -232,12 +235,12 @@ async def formatData(data, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def formattedDataFinalResult(unformattedData, formattedResults, attempt):
+async def formattedDataFinalResult(unformattedData, formattedResults, attempt, chunk_num):
     prompt = (
         f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
         f"{unformattedData}"
@@ -253,7 +256,7 @@ async def formattedDataFinalResult(unformattedData, formattedResults, attempt):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt))
+                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)

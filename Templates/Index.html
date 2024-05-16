@@ -26,6 +26,12 @@
             margin-top: 20px;
             margin-bottom: 20px;
         }
+        input[type=range] {
+            direction: rtl; /* Reverse direction of slider */
+        }
+        #orginalData {
+            width: 70%;
+        }
     </style>
 </head>
 <body>
@@ -41,8 +47,8 @@
                 <div class="mb-3">
                     <label for="chunkSize" class="form-label">Chunk Size:</label>
                     <div class="slider-labels">
+                        <span>Slow/Expensive</span>
                         <span>Fast/Inexpensive</span>
-                        <span>Slow/Accurate</span>
                     </div>
                     <input type="range" class="form-range" id="chunkSize" name="chunkSize" min="500" max="5000" value="{{ chunk_size }}">
                     <span id="chunkSizeValue">{{ chunk_size }}</span>
@@ -64,15 +70,24 @@
             <div class="row mt-4">
                 <div class="col">
                     <h3>Categories:</h3>
+                    <p id="categoriesInfo"></p>
                     <textarea id="categories" class="form-control rounded-field" rows="4">{{ categories }}</textarea>
+                    <h4>Final Output:</h4>
+                    <textarea id="categoriesFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
                 <div class="col">
                     <h3>Unstructured Data:</h3>
+                    <p id="unstructuredDataInfo"></p>
                     <textarea id="unstructuredData" class="form-control rounded-field" rows="4">{{ unstructured_data }}</textarea>
+                    <h4>Final Output:</h4>
+                    <textarea id="unstructuredDataFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
                 <div class="col">
                     <h3>JSON Output:</h3>
+                    <p id="jsonOutputInfo"></p>
                     <textarea id="jsonOutput" class="form-control rounded-field" rows="4">{{ json_output }}</textarea>
+                    <h4>Final Output:</h4>
+                    <textarea id="jsonOutputFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
             </div>
         </div>
@@ -96,6 +111,7 @@ document.getElementById("processData").addEventListener("click", async (e) => {
 
     let currentStep = 1;
     let currentAttempt = 1;
+    let currentChunk = 1;
     let currentField = $('#categories');
     let output = "";
 
@@ -108,33 +124,55 @@ document.getElementById("processData").addEventListener("click", async (e) => {
         if (done) break;
 
         const text = decoder.decode(value);
-        console.log("Received chunk:", text);  // Debug statement
 
         const lines = text.trim().split('\n');
         for (const line of lines) {
             if (line.startsWith("data:")) {
                 const jsonText = line.slice(5).trim();  // Remove "data:" prefix and trim whitespace
                 try {
-                    const { chunk, step, attempt } = JSON.parse(jsonText);
+                    const { token, step, attempt, chunk_num } = JSON.parse(jsonText);
+                    console.log("Parsed token:", token);  // Debug statement
                     console.log("Parsed step:", step);  // Debug statement
                     console.log("Parsed attempt:", attempt);  // Debug statement
+                    console.log("Parsed chunk:", chunk_num);  // Debug statement
+
+                    currentChunk = chunk_num;
+                    if (attempt != currentAttempt && currentAttempt != "Meta analysis of attempts for") {
+                        completedCalls += 1;
+                        const progress = (completedCalls / totalCalls) * 100;
+                        $('#progressBar').css('width', `${progress}%`).attr('aria-valuenow', progress);
+                        $('#progressStats').text(`Completed API calls: ${completedCalls}/${totalCalls}`);
+                        currentAttempt = attempt;
+                        output += "\n Attempt " + currentAttempt + "\n";
+                    }
+
+                    if (currentAttempt > numAttempts.value){
+                        currentAttempt = "Meta analysis of attempts for"
+                    }
+                    currentField.val(output);
 
                     if (step == 1) {
                         currentField = $('#categories');
+                        $('#categoriesInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
                     } else if (step == 2) {
                         currentField = $('#unstructuredData');
+                        $('#unstructuredDataInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
                     } else if (step == 3) {
                         currentField = $('#jsonOutput');
+                        $('#jsonOutputInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
                     }
 
-                    if (attempt != currentAttempt) {
-                        currentAttempt = attempt;
-                        output += "\n <h2>Attempt " + currentAttempt + "</h2>\n";
-                        completedCalls++;
-                    }
 
+
+
+                    if (chunk_num != currentChunk) {
+                        currentChunk = chunk_num;
+                        output += "\n Chunk " + currentChunk + "\n";
+                        currentAttempt = 1;
+                    }
                     if (step != currentStep) {
                         currentStep = step;
+                        currentAttempt = 1;
                         output = "";
                     }
 
@@ -142,14 +180,22 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     $('.rounded-field').removeClass('active-field');
                     currentField.addClass('active-field');
 
-                    output += chunk;
-                    currentField.val(output);
+                    output += token;
                     scrollToBottom(currentField[0]); // Scroll to bottom of the current field
 
+                    // Update final output
+                    if (attempt == numAttempts.value) {
+                        if (step == 1) {
+                            //$('#categoriesFinalOutput').val(chunk);
+                        } else if (step == 2) {
+                            //$('#unstructuredDataFinalOutput').val(chunk);
+                        } else if (step == 3) {
+                            //$('#jsonOutputFinalOutput').val(chunk);
+                        }
+                    }
+
                     // Update progress bar
-                    const progress = (completedCalls / totalCalls) * 100;
-                    $('#progressBar').css('width', `${progress}%`).attr('aria-valuenow', progress);
-                    $('#progressStats').text(`Completed API calls: ${completedCalls}/${totalCalls}`);
+     
                 } catch (err) {
                     console.error("JSON parse error:", err);
                 }
@@ -167,7 +213,7 @@ async function loadData() {
 
     const chunkSize = $('#chunkSize').val();
     const numAttempts = $('#numAttempts').val();
-    const numChunks = Math.ceil(data.char_count / chunkSize);
+    const numChunks = Math.ceil(data.word_count / chunkSize);
     const estimatedCalls = numChunks * numAttempts;
 
     $('#dataStats').append(`, Chunks: ${numChunks}, Estimated API calls: ${estimatedCalls}`);
