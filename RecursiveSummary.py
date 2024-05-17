@@ -14,7 +14,7 @@ import json
 # Initialize Flask
 app = Flask(__name__)
 # Initialize OpenAI API key
-client = OpenAI()
+client = OpenAI(api_key = "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")
 client.api_key = os.getenv('OPENAI_API_KEY')
 
 # Global variables
