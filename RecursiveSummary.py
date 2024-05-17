@@ -13,7 +13,7 @@ import time
 # Initialize Flask
 app = Flask(__name__)
 # Initialize OpenAI API key
-client = OpenAI(api_key = "")
+client = OpenAI()
 
 # Global variables
 resourceTypes = []
