@@ -185,21 +185,21 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     }
 
                     if (currentAttempt > numAttempts.value){
-                        currentAttempt = "Meta analysis of attempts for"
+                        currentAttempt = "Meta analysis for"
                     }
                     currentField.val(output);
 
                     if (step == 1) {
                         currentField = $('#categories');
-                        $('#categoriesInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
+                        $('#categoriesInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
                         fetchFinalData('/get_resource_types', categoryData, currentChunk);
                     } else if (step == 2) {
                         currentField = $('#unstructuredData');
-                        $('#unstructuredDataInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
+                        $('#unstructuredDataInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
                         fetchFinalData('/get_unformatted_data', unstructuredData, currentChunk);
                     } else if (step == 3) {
                         currentField = $('#jsonOutput');
-                        $('#jsonOutputInfo').text(`Attempt ${currentAttempt} of chunk ${currentChunk}`);
+                        $('#jsonOutputInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
                         fetchFinalData('/get_formatted_data', jsonData, currentChunk);
                     }
 
