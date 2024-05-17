@@ -10,12 +10,13 @@ import asyncio
 import threading
 import time
 import json
+from flask import Flask, Response, render_template, jsonify, request
 
 # Initialize Flask
 app = Flask(__name__)
 # Initialize OpenAI API key
-client = OpenAI()
-client.api_key = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key = "")
+
 
 # Global variables
 resourceTypes = []
@@ -65,6 +66,18 @@ def index():
     unstructured_data = ""
     json_output = ""
     return render_template('index.html', chunk_size=chunk_size, num_attempts=num_attempts, categories=categories, unstructured_data=unstructured_data, json_output=json_output)
+
+@app.route('/get_resource_types', methods=['GET'])
+def get_resource_types():
+    return jsonify(resourceTypes)
+
+@app.route('/get_unformatted_data', methods=['GET'])
+def get_unformatted_data():
+    return jsonify(unFormattedData)
+
+@app.route('/get_formatted_data', methods=['GET'])
+def get_formatted_data():
+    return jsonify(formattedData)
 
 def loadCSVData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
