@@ -9,13 +9,11 @@ import pathlib
 import asyncio
 import threading
 import time
-import json
 
 # Initialize Flask
 app = Flask(__name__)
 # Initialize OpenAI API key
-client = OpenAI(api_key = "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")
-client.api_key = os.getenv('OPENAI_API_KEY')
+client = OpenAI(api_key = "")
 
 # Global variables
 resourceTypes = []
@@ -66,6 +64,18 @@ def index():
     json_output = ""
     return render_template('index.html', chunk_size=chunk_size, num_attempts=num_attempts, categories=categories, unstructured_data=unstructured_data, json_output=json_output)
 
+@app.route('/get_resource_types', methods=['GET'])
+def get_resource_types():
+    return jsonify(resourceTypes)
+
+@app.route('/get_unformatted_data', methods=['GET'])
+def get_unformatted_data():
+    return jsonify(unFormattedData)
+
+@app.route('/get_formatted_data', methods=['GET'])
+def get_formatted_data():
+    return jsonify(formattedData)
+
 def loadCSVData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
     all_text = ""
@@ -102,7 +112,7 @@ async def process_data_async():
             resources = await determineResourceTypes(splitDataResult[chunk], j + 1, chunk + 1)
             resourceAttempts.append(resources)
         allResourcesForChunk = " ".join([str(item) for item in resourceAttempts])
-        metaAnalysisOfChunk = await resourceType_meta_summary(splitDataResult[chunk], allResourcesForChunk)
+        metaAnalysisOfChunk = await resourceType_meta_summary(splitDataResult[chunk], allResourcesForChunk, chunk + 1)
         resourceTypes.append(metaAnalysisOfChunk)
         chunk += 1
     chunk = 0
@@ -150,7 +160,7 @@ async def determineResourceTypes(data, attempt, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
-async def resourceType_meta_summary(data, attempts):
+async def resourceType_meta_summary(data, attempts, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
         f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
@@ -167,7 +177,7 @@ async def resourceType_meta_summary(data, attempts):
         for chunk in stream:
             if chunk.choices[0].delta.content:
                 results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt, 1))
+                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempts, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
@@ -178,7 +188,7 @@ async def extractData(data, categories, attempt, chunk_num):
         f"Please only include data for resources that fall into the following categories: {categories}\n"
         f"Please format your response as follows:\n"
         f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
-        f"Data(key:value) This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
+        f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Accuracy and completeness are essential."
         f"{data}"
     )
     results = []
@@ -203,7 +213,7 @@ async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
         f"Here are the attempts at extracting the relevant data: {summaries}\n"
         f"Please format your response as follows:\n"
         f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
-        f"Key: value - This is the key value pair that is used for this resource type. Include as many as required for each resource type. Accuracy and completeness are essential."
+        f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data.  Include as many as required for each resource type. Accuracy and completeness are essential."
     )
     results = []
     stream = client.chat.completions.create(
