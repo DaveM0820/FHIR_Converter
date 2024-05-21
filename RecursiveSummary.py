@@ -13,7 +13,7 @@ import time
 # Initialize Flask
 app = Flask(__name__)
 # Initialize OpenAI API key
-client = OpenAI()
+client = OpenAI(api_key="",)
 
 # Global variables
 resourceTypes = []
@@ -76,6 +76,24 @@ def get_unformatted_data():
 def get_formatted_data():
     return jsonify(formattedData)
 
+@app.route('/test_fhir_output', methods=['POST'])
+def test_fhir_output():
+    data = request.get_json()
+    test_results = []
+
+    for chunk_output in data['formatted_data']:
+        try:
+            response = requests.post('https://hapi.fhir.org/baseR4', json=chunk_output)
+            if response.status_code == 200 or response.status_code == 201:
+                test_results.append(True)
+            else:
+                test_results.append(False)
+        except Exception as e:
+            print(f"Error testing FHIR output: {e}")
+            test_results.append(False)
+    
+    return jsonify(test_results)
+
 def loadCSVData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
     all_text = ""
@@ -132,7 +150,7 @@ async def process_data_async():
             attempt = await formatData(unFormattedData[chunk], j + 1, chunk + 1)
             formattedDataAttempts.append(attempt)
         allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
-        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], formattedDataAttempts[chunk], len(formattedDataAttempts)+1, chunk + 1)
+        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], allAttemptsForDataChunk, len(formattedDataAttempts)+1, chunk + 1)
         formattedData.append(finalFormattedData)
         chunk += 1
     done = True
