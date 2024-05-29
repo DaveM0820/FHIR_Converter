@@ -10,33 +10,54 @@ import asyncio
 import threading
 import time
 
-# Initialize Flask
+# Initialize Flask application
 app = Flask(__name__)
-# Initialize OpenAI API key
-client = OpenAI(api_key="",)
 
-# Global variables
-resourceTypes = []
-unFormattedData = []
-formattedData = []
-done = False
-streamAllOutput = []
-chunkSize = 2000
-numAttempts = 2
-originalData = ""
+# Initialize OpenAI API client with your API key
+client = OpenAI(api_key="")
 
+# Global variables for data processing
+resourceTypes = []  # Store resource types identified in the data
+unFormattedData = []  # Store unformatted extracted data
+formattedData = []  # Store final formatted data
+done = False  # Flag to indicate completion of data processing
+streamAllOutput = []  # List to store streaming output from OpenAI API
+chunkSize = 2000  # Size of data chunks to be processed
+numAttempts = 2  # Number of attempts per chunk for data processing
+originalData = ""  # Store the original loaded data
+
+# Concurrency control for shared resources
+resource_lock = asyncio.Lock()
+
+"""
+The /process_data endpoint receives a POST request with 'chunk_size' and 'num_attempts'. It sets global variables, 
+starts asynchronous data processing in a separate thread, and streams the processing output back to the client using 
+Server-Sent Events (SSE). The asynchronous process follows these steps: 
+1. Splits the original data into smaller chunks based on 'chunk_size'. 
+2. For each chunk, identifies potential FHIR resource types using the OpenAI API, running multiple attempts and summarizing results.
+3. Extracts relevant data for each chunk based on identified resource types, running multiple attempts and summarizing results.
+4. Formats the extracted data into FHIR-compliant JSON, running multiple attempts and summarizing results.
+5. Marks processing as complete when all chunks are processed. The overall system functions by loading data, processing it in 
+chunks through multiple stages using the OpenAI API, and providing real-time feedback and final formatted data to the user.
+"""
+
+# Route to process data asynchronously
 @app.route('/process_data', methods=['POST'])
 def process_data():
-    data = request.get_json()
-    global chunkSize, numAttempts, done, streamAllOutput
-    chunkSize = int(data['chunk_size'])
-    numAttempts = int(data['num_attempts'])
-    done = False
-    streamAllOutput = []
+    data = request.get_json()  # Get input data from the request
+    global chunkSize, numAttempts, done, streamAllOutput, resourceTypes, unFormattedData, formattedData
+    chunkSize = int(data['chunk_size'])  # Set chunk size from input data
+    numAttempts = int(data['num_attempts'])  # Set number of attempts from input data
+    done = False  # Reset completion flag
+    streamAllOutput = []  # Clear previous streaming output
+    resourceTypes = []  # Clear previous resource types
+    unFormattedData = []  # Clear previous unformatted data
+    formattedData = []  # Clear previous formatted data
 
-    # Run the async process_data_async in a separate thread
+    # Run the async process_data_async function in a separate thread
     threading.Thread(target=asyncio.run, args=(process_data_async(),)).start()
 
+    # Generator function to stream output to the client
     def generate():
         while not done or streamAllOutput:
             while streamAllOutput:
@@ -47,14 +68,16 @@ def process_data():
 
     return Response(generate(), content_type='text/event-stream')
 
+# Route to load data from text and CSV files
 @app.route('/load_data', methods=['GET'])
 def load_data():
     global originalData
-    originalData = loadTextData() + loadCSVData()
-    word_count = len(originalData.split())
-    char_count = len(originalData)
+    originalData = loadTextData() + loadCSVData()  # Load and combine data from files
+    word_count = len(originalData.split())  # Calculate word count
+    char_count = len(originalData)  # Calculate character count
     return jsonify({'originalData': originalData, 'word_count': word_count, 'char_count': char_count})
 
+# Route to render the main page
 @app.route('/', methods=['GET'])
 def index():
     chunk_size = 2000
@@ -64,23 +87,28 @@ def index():
     json_output = ""
     return render_template('index.html', chunk_size=chunk_size, num_attempts=num_attempts, categories=categories, unstructured_data=unstructured_data, json_output=json_output)
 
+# Route to get identified resource types
 @app.route('/get_resource_types', methods=['GET'])
 def get_resource_types():
     return jsonify(resourceTypes)
 
+# Route to get unformatted extracted data
 @app.route('/get_unformatted_data', methods=['GET'])
 def get_unformatted_data():
     return jsonify(unFormattedData)
 
+# Route to get formatted final data
 @app.route('/get_formatted_data', methods=['GET'])
 def get_formatted_data():
     return jsonify(formattedData)
 
+# Route to test the FHIR output with an external server
 @app.route('/test_fhir_output', methods=['POST'])
 def test_fhir_output():
     data = request.get_json()
     test_results = []
 
+    # Test each chunk of formatted data with the FHIR server
     for chunk_output in data['formatted_data']:
         try:
             response = requests.post('https://hapi.fhir.org/baseR4', json=chunk_output)
@@ -94,6 +122,7 @@ def test_fhir_output():
     
     return jsonify(test_results)
 
+# Function to load CSV data from the specified directory
 def loadCSVData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
     all_text = ""
@@ -108,6 +137,7 @@ def loadCSVData():
                 print(f"Failed to read {filename}: {e}")
     return all_text
 
+# Function to load text data from the specified directory
 def loadTextData():
     path = pathlib.Path(__file__).parent.resolve() / "TXTData"
     only_files = [f for f in listdir(path) if isfile(join(path, f))]
@@ -120,41 +150,57 @@ def loadTextData():
     words = " ".join([str(item) for item in all_lines])
     return words
 
+# Asynchronous function to process data
 async def process_data_async():
     global done
-    splitDataResult = splitData(originalData)
-    chunk = 0
-    for i in splitDataResult:
-        resourceAttempts = []
-        for j in range(numAttempts):
-            resources = await determineResourceTypes(splitDataResult[chunk], j + 1, chunk + 1)
-            resourceAttempts.append(resources)
-        allResourcesForChunk = " ".join([str(item) for item in resourceAttempts])
-        metaAnalysisOfChunk = await resourceType_meta_summary(splitDataResult[chunk], allResourcesForChunk, chunk + 1)
-        resourceTypes.append(metaAnalysisOfChunk)
-        chunk += 1
-    chunk = 0
-    for i in splitDataResult:
-        unFormattedDataattempts = []
-        for j in range(numAttempts):
-            attempt = await extractData(splitDataResult[chunk], resourceTypes[chunk], j + 1, chunk + 1)
-            unFormattedDataattempts.append(attempt)
-        allAttemptsForDataChunk = " ".join([str(item) for item in unFormattedDataattempts])
-        metaAnalysisOfChunk = await extractedDataFinalResult(splitDataResult[chunk], allAttemptsForDataChunk, len(unFormattedDataattempts)+1, chunk + 1)
-        unFormattedData.append(metaAnalysisOfChunk)
-        chunk += 1
-    chunk = 0
-    for i in unFormattedData:
-        formattedDataAttempts = []
-        for j in range(numAttempts):
-            attempt = await formatData(unFormattedData[chunk], j + 1, chunk + 1)
-            formattedDataAttempts.append(attempt)
-        allAttemptsForDataChunk = " ".join([str(item) for item in formattedDataAttempts])
-        finalFormattedData = await formattedDataFinalResult(unFormattedData[chunk], allAttemptsForDataChunk, len(formattedDataAttempts)+1, chunk + 1)
-        formattedData.append(finalFormattedData)
-        chunk += 1
-    done = True
+    splitDataResult = splitData(originalData)  # Split the original data into chunks
+    tasks = []
 
+    # Create tasks for each chunk to be processed in parallel
+    for chunk_index, chunk_data in enumerate(splitDataResult):
+        tasks.append(process_chunk(chunk_index, chunk_data))
+    
+    # Run all chunk processing tasks in parallel
+    await asyncio.gather(*tasks)
+    
+    done = True  # Mark processing as complete
+
+# Asynchronous function to process a single chunk
+async def process_chunk(chunk_index, chunk_data):
+    try:
+        # Determine resource types for the chunk
+        resource_tasks = [determineResourceTypes(chunk_data, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
+        resource_results = await asyncio.gather(*resource_tasks)
+        allResourcesForChunk = " ".join(resource_results)
+        metaAnalysisOfChunk = await resourceType_meta_summary(chunk_data, allResourcesForChunk, chunk_index + 1)
+        
+        # Ensure thread safety when updating shared resourceTypes list
+        async with resource_lock:
+            resourceTypes.append(metaAnalysisOfChunk)
+        
+        # Extract data for the chunk
+        unformatted_data_tasks = [extractData(chunk_data, metaAnalysisOfChunk, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
+        unformatted_data_results = await asyncio.gather(*unformatted_data_tasks)
+        allAttemptsForDataChunk = " ".join(unformatted_data_results)
+        metaAnalysisOfUnformattedData = await extractedDataFinalResult(chunk_data, allAttemptsForDataChunk, numAttempts + 1, chunk_index + 1)
+        
+        # Ensure thread safety when updating shared unFormattedData list
+        async with resource_lock:
+            unFormattedData.append(metaAnalysisOfUnformattedData)
+        
+        # Format data for the chunk
+        formatted_data_tasks = [formatData(metaAnalysisOfUnformattedData, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
+        formatted_data_results = await asyncio.gather(*formatted_data_tasks)
+        allAttemptsForFormattedData = " ".join(formatted_data_results)
+        finalFormattedData = await formattedDataFinalResult(metaAnalysisOfUnformattedData, allAttemptsForFormattedData, numAttempts + 1, chunk_index + 1)
+        
+        # Ensure thread safety when updating shared formattedData list
+        async with resource_lock:
+            formattedData.append(finalFormattedData)
+    except Exception as e:
+        print(f"Error processing chunk {chunk_index}: {e}")
+
+# Asynchronous function to determine resource types using OpenAI API
 async def determineResourceTypes(data, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
@@ -178,6 +224,7 @@ async def determineResourceTypes(data, attempt, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Asynchronous function to summarize resource types from multiple attempts
 async def resourceType_meta_summary(data, attempts, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
@@ -200,6 +247,7 @@ async def resourceType_meta_summary(data, attempts, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Asynchronous function to extract data based on identified resource types
 async def extractData(data, categories, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
@@ -224,6 +272,7 @@ async def extractData(data, categories, attempt, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Asynchronous function to validate and summarize extracted data
 async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyze the results below, look for errors, and reply with the correct list of resources,"
@@ -248,6 +297,7 @@ async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Asynchronous function to format extracted data into FHIR-compliant JSON
 async def formatData(data, attempt, chunk_num):
     prompt = (
         f"Your goal is to convert the data below into a valid FHIR4 resource bundle. Please structure your output in valid JSON that adheres to the FHIR4 standard. Accuracy and completeness is essential. This task will fail if the server rejects the request."
@@ -268,6 +318,7 @@ async def formatData(data, attempt, chunk_num):
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Asynchronous function to validate and finalize formatted data
 async def formattedDataFinalResult(unformattedData, formattedResults, attempt, chunk_num):
     prompt = (
         f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
@@ -289,6 +340,7 @@ async def formattedDataFinalResult(unformattedData, formattedResults, attempt, c
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
+# Function to split the original data into smaller chunks
 def splitData(words):
     words_array = words.split(" ")
     groups = []

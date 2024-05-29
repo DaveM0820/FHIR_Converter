@@ -7,44 +7,53 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
     <style>
+        /* Style for bordered box container */
         .border-box {
             border: 1px solid #ccc;
             padding: 20px;
             margin-top: 20px;
             border-radius: 10px;
         }
+        /* Style for sliders container */
         .slider-container {
             width: 75%;
             margin: 0 auto;
         }
+        /* Style for slider labels */
         .slider-labels {
             display: flex;
             justify-content: space-between;
         }
+        /* Style for active text area field */
         .active-field {
             border: 2px solid #007bff;
             box-shadow: 0 0 10px rgba(0, 123, 255, 0.5);
             transition: border 0.3s, box-shadow 0.3s;
         }
+        /* Style for progress bar container */
         .progress-container {
             margin-top: 20px;
             margin-bottom: 20px;
             width: 75%;
             margin: 0 auto;
         }
+        /* Style for range input */
         input[type=range] {
             width: 100%;
         }
+        /* Style for various elements */
         #originalData, .progress, .rounded-field {
             width: 100%;
             margin: 0 auto;
         }
+        /* Style for chunk navigation buttons */
         .chunk-nav {
             display: flex;
             justify-content: center;
             align-items: center;
             gap: 10px;
         }
+        /* Style for status lights container */
         .status-lights {
             display: flex;
             justify-content: center;
@@ -52,6 +61,7 @@
             gap: 10px;
             margin-top: 20px;
         }
+        /* Style for individual status light */
         .status-light {
             width: 20px;
             height: 20px;
@@ -65,11 +75,13 @@
         <h1>FHIR Converter Tool</h1>
         <div class="border-box">
             <form id="dataForm">
+                <!-- Original Data Section -->
                 <div class="mb-3">
                     <h3>Original Data:</h3>
                     <textarea id="originalData" class="form-control rounded-field" rows="4" readonly></textarea>
                     <span id="dataStats"></span>
                 </div>
+                <!-- Chunk Size Slider -->
                 <div class="mb-3 slider-container">
                     <label for="chunkSize" class="form-label">Chunk Size:</label>
                     <div class="slider-labels">
@@ -79,6 +91,7 @@
                     <input type="range" class="form-range" id="chunkSize" name="chunkSize" min="500" max="5000" value="{{ chunk_size }}" style="direction: rtl;">
                     <span id="chunkSizeValue">{{ chunk_size }}</span>
                 </div>
+                <!-- Number of Attempts Slider -->
                 <div class="mb-3 slider-container">
                     <label for="numAttempts" class="form-label">Number of attempts per chunk:</label>
                     <div class="slider-labels">
@@ -90,6 +103,7 @@
                 </div>
                 <button id="processData" class="btn btn-primary">Process Data</button>
             </form>
+            <!-- Progress Bar Section -->
             <div class="progress-container">
                 <h3>Progress:</h3>
                 <div class="progress">
@@ -97,7 +111,9 @@
                 </div>
                 <span id="progressStats"></span>
             </div>
+            <!-- Data Sections for Categories, Unstructured Data, and JSON Output -->
             <div class="row mt-4">
+                <!-- Categories Section -->
                 <div class="col">
                     <h3>Categories:</h3>
                     <p id="categoriesInfo">Attempt 1 of chunk 1</p>
@@ -110,32 +126,34 @@
                     <h4>Final Output:</h4>
                     <textarea id="categoriesFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
+                <!-- Unstructured Data Section -->
                 <div class="col">
                     <h3>Unstructured Data:</h3>
                     <p id="unstructuredDataInfo">Attempt 1 of chunk 1</p>
                     <textarea id="unstructuredData" class="form-control rounded-field" rows="8">{{ unstructured_data }}</textarea>
+                    <h4>Final Output:</h4>
+                    <textarea id="unstructuredDataFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                     <div class="chunk-nav">
                         <button id="prevUnstructuredChunk" class="btn btn-secondary">&larr;</button>
                         <span id="unstructuredChunkNum">Chunk 1</span>
                         <button id="nextUnstructuredChunk" class="btn btn-secondary">&rarr;</button>
                     </div>
-                    <h4>Final Output:</h4>
-                    <textarea id="unstructuredDataFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
+                <!-- JSON Output Section -->
                 <div class="col">
                     <h3>JSON Output:</h3>
                     <p id="jsonOutputInfo">Attempt 1 of chunk 1</p>
                     <textarea id="jsonOutput" class="form-control rounded-field" rows="8">{{ json_output }}</textarea>
+                    <h4>Final Output:</h4>
+                    <textarea id="jsonOutputFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                     <div class="chunk-nav">
                         <button id="prevJsonChunk" class="btn btn-secondary">&larr;</button>
                         <span id="jsonChunkNum">Chunk 1</span>
                         <button id="nextJsonChunk" class="btn btn-secondary">&rarr;</button>
                     </div>
-                    <h4>Final Output:</h4>
-                    <textarea id="jsonOutputFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
-                    <button id="downloadJson" class="btn btn-success mt-2">Download JSON</button>
                 </div>
             </div>
+            <!-- Status Lights Section -->
             <div class="status-lights" id="statusLights">
                 <!-- Status lights will be dynamically added here -->
             </div>
@@ -153,9 +171,11 @@ let unstructuredData = [];
 let jsonData = [];
 let numChunks = 0;
 
+// Event listener for the Process Data button
 document.getElementById("processData").addEventListener("click", async (e) => {
     e.preventDefault();
 
+    // Send a POST request to start data processing
     let response = await fetch("/process_data", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
@@ -175,6 +195,7 @@ document.getElementById("processData").addEventListener("click", async (e) => {
         element.scrollTop = element.scrollHeight;
     };
 
+    // Stream and process the response data
     while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -192,8 +213,17 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     console.log("Parsed attempt:", attempt);  // Debug statement
                     console.log("Parsed chunk:", chunk_num);  // Debug statement
 
-                    currentChunk = chunk_num;
-                    if (attempt != currentAttempt && currentAttempt != "Meta analysis for") {
+                    // Update the output for the corresponding chunk and attempt
+                    if (step === 1) {
+                        updateOutput($('#categories'), 'categoriesInfo', chunk_num, attempt, token);
+                    } else if (step === 2) {
+                        updateOutput($('#unstructuredData'), 'unstructuredDataInfo', chunk_num, attempt, token);
+                    } else if (step === 3) {
+                        updateOutput($('#jsonOutput'), 'jsonOutputInfo', chunk_num, attempt, token);
+                    }
+
+                    // Update progress
+                    if (attempt !== currentAttempt && currentAttempt !== "Meta analysis for") {
                         completedCalls += 1;
                         const progress = (completedCalls / totalCalls) * 100;
                         $('#progressBar').css('width', `${progress}%`).attr('aria-valuenow', progress);
@@ -203,40 +233,20 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                     }
 
                     if (currentAttempt > numAttempts.value){
-                        currentAttempt = "Meta analysis for"
-                    }
-                    currentField.val(output);
-
-                    if (step == 1) {
-                        currentField = $('#categories');
-                        $('#categoriesInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
-                        fetchFinalData('/get_resource_types', categoryData, currentChunk);
-                    } else if (step == 2) {
-                        currentField = $('#unstructuredData');
-                        $('#unstructuredDataInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
-                        fetchFinalData('/get_unformatted_data', unstructuredData, currentChunk);
-                    } else if (step == 3) {
-                        currentField = $('#jsonOutput');
-                        $('#jsonOutputInfo').text(`Attempt: ${currentAttempt} of chunk ${currentChunk}`);
-                        fetchFinalData('/get_formatted_data', jsonData, currentChunk);
+                        currentAttempt = "Meta analysis for";
                     }
 
-                    if (chunk_num != currentChunk) {
+                    if (chunk_num !== currentChunk) {
                         currentChunk = chunk_num;
                         output += "\n Chunk " + currentChunk + "\n";
                         currentAttempt = 1;
                     }
-                    if (step != currentStep) {
+                    if (step !== currentStep) {
                         currentStep = step;
                         currentAttempt = 1;
                         output = "";
                     }
 
-                    // Add active class to the current field
-                    $('.rounded-field').removeClass('active-field');
-                    currentField.addClass('active-field');
-
-                    output += token;
                     scrollToBottom(currentField[0]); // Scroll to bottom of the current field
 
                 } catch (err) {
@@ -247,6 +257,13 @@ document.getElementById("processData").addEventListener("click", async (e) => {
     }
 });
 
+// Update output for the corresponding chunk and attempt
+function updateOutput(field, infoId, chunk_num, attempt, token) {
+    field.val((i, text) => text + token);
+    $(`#${infoId}`).text(`Attempt: ${attempt} of chunk ${chunk_num}`);
+}
+
+// Load data from the server and update the UI
 async function loadData() {
     const response = await fetch('/load_data');
     const data = await response.json();
@@ -263,6 +280,7 @@ async function loadData() {
     return { numChunks, estimatedCalls };
 }
 
+// Update UI elements with loaded data
 function updateUI(data) {
     $('#chunkSizeValue').text(data.chunk_size);
     $('#numAttemptsValue').text(data.num_attempts);
@@ -271,6 +289,7 @@ function updateUI(data) {
     $('#jsonOutput').val(data.json_output);
 }
 
+// Fetch final data for the given chunk and update UI
 async function fetchFinalData(endpoint, dataArray, chunk) {
     const response = await fetch(endpoint);
     const data = await response.json();
@@ -279,6 +298,7 @@ async function fetchFinalData(endpoint, dataArray, chunk) {
     updateFinalOutput(chunk);
 }
 
+// Update final output text area based on the step
 function updateFinalOutput(step) {
     if (step === 1) {
         $('#categoriesFinalOutput').val(categoryData[currentCategoryChunk - 1] || '');
@@ -289,6 +309,7 @@ function updateFinalOutput(step) {
     }
 }
 
+// Event listeners for navigation buttons
 $('#prevCategoryChunk').on('click', () => {
     if (currentCategoryChunk > 1) {
         currentCategoryChunk -= 1;
@@ -337,6 +358,7 @@ $('#nextJsonChunk').on('click', () => {
     }
 });
 
+// Update UI when range input values change
 $('input[type="range"]').on('input', function () {
     const chunkSize = $('#chunkSize').val();
     const numAttempts = $('#numAttempts').val();
@@ -351,6 +373,7 @@ $('input[type="range"]').on('input', function () {
     });
 });
 
+// Create status lights for each chunk
 function createStatusLights() {
     $('#statusLights').empty();
     for (let i = 1; i <= numChunks; i++) {
@@ -358,6 +381,7 @@ function createStatusLights() {
     }
 }
 
+// Test FHIR output for a specific chunk
 async function testFhirOutput(chunkIndex) {
     const data = jsonData[chunkIndex - 1];
     try {
@@ -377,12 +401,14 @@ async function testFhirOutput(chunkIndex) {
     }
 }
 
+// Test FHIR output for all chunks
 function testAllFhirOutputs() {
     for (let i = 1; i <= numChunks; i++) {
         testFhirOutput(i);
     }
 }
 
+// Load data and create status lights on document ready
 $(document).ready(function() {
     loadData().then(({ estimatedCalls }) => {
         totalCalls = estimatedCalls;
@@ -390,11 +416,13 @@ $(document).ready(function() {
     createStatusLights();
 });
 
+// Event listener for the Process Data button
 $('#processData').on('click', function() {
     createStatusLights();
     testAllFhirOutputs();
 });
 
+// Event listener for the Download JSON button
 $('#downloadJson').on('click', function() {
     const blob = new Blob([JSON.stringify(jsonData)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
