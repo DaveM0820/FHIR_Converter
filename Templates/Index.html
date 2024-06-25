@@ -118,13 +118,13 @@
                     <h3>Categories:</h3>
                     <p id="categoriesInfo">Attempt 1 of chunk 1</p>
                     <textarea id="categories" class="form-control rounded-field" rows="8">{{ categories }}</textarea>
-                    <div class="chunk-nav">
+                    <h4>Final Output:</h4>
+                    <textarea id="categoriesFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
+                                        <div class="chunk-nav">
                         <button id="prevCategoryChunk" class="btn btn-secondary">&larr;</button>
                         <span id="categoryChunkNum">Chunk 1</span>
                         <button id="nextCategoryChunk" class="btn btn-secondary">&rarr;</button>
                     </div>
-                    <h4>Final Output:</h4>
-                    <textarea id="categoriesFinalOutput" class="form-control rounded-field" rows="4" readonly></textarea>
                 </div>
                 <!-- Unstructured Data Section -->
                 <div class="col">
@@ -208,10 +208,7 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                 const jsonText = line.slice(5).trim();  // Remove "data:" prefix and trim whitespace
                 try {
                     const { token, step, attempt, chunk_num } = JSON.parse(jsonText);
-                    console.log("Parsed token:", token);  // Debug statement
-                    console.log("Parsed step:", step);  // Debug statement
-                    console.log("Parsed attempt:", attempt);  // Debug statement
-                    console.log("Parsed chunk:", chunk_num);  // Debug statement
+    
 
                     // Update the output for the corresponding chunk and attempt
                     if (step === 1) {
@@ -242,9 +239,11 @@ document.getElementById("processData").addEventListener("click", async (e) => {
                         currentAttempt = 1;
                     }
                     if (step !== currentStep) {
+                        fetchFinalData(step)
                         currentStep = step;
                         currentAttempt = 1;
                         output = "";
+                        
                     }
 
                     scrollToBottom(currentField[0]); // Scroll to bottom of the current field
@@ -280,6 +279,28 @@ async function loadData() {
     return { numChunks, estimatedCalls };
 }
 
+// Fetch final data for the given step and update UI
+async function fetchFinalData(step) {
+    if (step == 1){
+        endpoint = "get_resource_types"
+        dataArray = categoryData
+    }
+    else if (step == 2){
+        endpoint = "get_unformatted_data"
+        dataArray = unstructuredData
+    }
+    else if (step == 3){
+        endpoint = "get_formatted_data"
+        dataArray = jsonData
+    }
+    const response = await fetch(endpoint);
+    const data = await response.json();
+    dataArray.length = 0; // Clear existing data
+    dataArray.push(data);
+    updateFinalOutput(step);
+}
+
+
 // Update UI elements with loaded data
 function updateUI(data) {
     $('#chunkSizeValue').text(data.chunk_size);
@@ -289,19 +310,14 @@ function updateUI(data) {
     $('#jsonOutput').val(data.json_output);
 }
 
-// Fetch final data for the given chunk and update UI
-async function fetchFinalData(endpoint, dataArray, chunk) {
-    const response = await fetch(endpoint);
-    const data = await response.json();
-    dataArray.length = 0; // Clear existing data
-    dataArray.push(...data);
-    updateFinalOutput(chunk);
-}
-
 // Update final output text area based on the step
 function updateFinalOutput(step) {
+    console.log("Updating final output...")
     if (step === 1) {
         $('#categoriesFinalOutput').val(categoryData[currentCategoryChunk - 1] || '');
+        console.log("step === 1, text to update" + categoryData[currentCategoryChunk - 1] || '')
+        console.log($('#categoriesFinalOutput').value)
+
     } else if (step === 2) {
         $('#unstructuredDataFinalOutput').val(unstructuredData[currentUnstructuredChunk - 1] || '');
     } else if (step === 3) {

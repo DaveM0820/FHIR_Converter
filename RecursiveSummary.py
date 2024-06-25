@@ -12,7 +12,7 @@ import time
 
 # Initialize Flask application
 app = Flask(__name__)
-
+ 
 # Initialize OpenAI API client with your API key
 client = OpenAI(api_key="")
 
