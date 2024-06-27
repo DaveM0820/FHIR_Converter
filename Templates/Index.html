@@ -272,7 +272,7 @@ async function loadData() {
     const chunkSize = $('#chunkSize').val();
     const numAttempts = $('#numAttempts').val();
     numChunks = Math.ceil(data.word_count / chunkSize);
-    const estimatedCalls = (numChunks * numAttempts * 3) + 3;
+    const estimatedCalls = (numChunks * numAttempts * 3);
     $('#dataStats').append(`, Chunks: ${numChunks}, Estimated API calls: ${estimatedCalls}`);
     return { numChunks, estimatedCalls };
 }
@@ -375,7 +375,7 @@ $('input[type="range"]').on('input', function () {
     $('#numAttemptsValue').text(numAttempts);
 
     loadData().then(({ numChunks, estimatedCalls }) => {
-        estimatedCalls =  (numChunks * numAttempts * 3) + 3;
+        estimatedCalls =  (numChunks * numAttempts * 3);
         $('#dataStats').append(`, Chunks: ${numChunks}, Estimated API calls: ${estimatedAPICalls}`);
         totalCalls = estimatedAPICalls;
     });

@@ -192,8 +192,7 @@ async def process_chunk(chunk_index, chunk_data):
     try:
         resourceExamples = load_resource_examples()
         possibleResourceTypes = load_resource_types()
-        print(possibleResourceTypes)
-        print(resourceExamples)
+        global currentResourceExamples
         # Determine resource types for the chunk
         resource_tasks = [determineResourceTypes(chunk_data, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
         resource_results = await asyncio.gather(*resource_tasks)
@@ -203,13 +202,9 @@ async def process_chunk(chunk_index, chunk_data):
         # Ensure thread safety when updating shared resourceTypes list
         async with resource_lock:
             resourceTypes.append(metaAnalysisOfChunk)
-        
-            # Convert categories string to a list of categories
-        category_list = [cat.strip() for cat in categories.split('\n') if cat.strip()]
-    
+        # Convert categories string to a list of categories
         # Get the resource examples for the identified categories
- 
-        for category in category_list:
+        for category in resourceTypes:
             if category in resourceExamples:
                 currentResourceExamples += f"\nExample for {category}:\n{resourceExamples[category]}\n"
     
@@ -289,7 +284,7 @@ async def resourceType_meta_summary(data, attempts, chunk_num):
 async def extractData(data, categories, attempt, chunk_num):
 
     prompt = (
-        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
+        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task. "
         f"Please only include data for resources that fall into the following categories: {categories}\n"
         f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
         f"Please format your response as follows:\n"
@@ -297,6 +292,7 @@ async def extractData(data, categories, attempt, chunk_num):
         f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Accuracy and completeness are essential."
         f"{data}"
     )
+    print(prompt)
     results = []
     stream = client.chat.completions.create(
         model="gpt-3.5-turbo",
