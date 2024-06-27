@@ -22,10 +22,12 @@ unFormattedData = []  # Store unformatted extracted data
 formattedData = []  # Store final formatted data
 done = False  # Flag to indicate completion of data processing
 streamAllOutput = []  # List to store streaming output from OpenAI API
-chunkSize = 2000  # Size of data chunks to be processed
-numAttempts = 2  # Number of attempts per chunk for data processing
+chunkSize = 5000  # Size of data chunks to be processed
+numAttempts = 1  # Number of attempts per chunk for data processing
 originalData = ""  # Store the original loaded data
-
+possibleResourceTypes = ""
+resourceExamples = ""
+currentResourceExamples = ""
 # Concurrency control for shared resources
 resource_lock = asyncio.Lock()
 
@@ -77,6 +79,26 @@ def load_data():
     char_count = len(originalData)  # Calculate character count
     return jsonify({'originalData': originalData, 'word_count': word_count, 'char_count': char_count})
 
+def load_resource_types():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, 'ResourceTypes.txt')
+    with open(file_path, 'r') as file:
+        return file.read()
+    
+def load_resource_examples():
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(script_dir, 'ResourceExamples.txt')
+    with open(file_path, 'r') as file:
+        content = file.read()
+    
+    examples = {}
+    for resource_example in content.split('|||'):
+        resource_example = resource_example.strip()
+        if resource_example:
+            resource_type = resource_example.split('"resourceType" : "')[1].split('"')[0]
+            examples[resource_type] = resource_example
+    
+    return examples
 # Route to render the main page
 @app.route('/', methods=['GET'])
 def index():
@@ -168,6 +190,10 @@ async def process_data_async():
 # Asynchronous function to process a single chunk
 async def process_chunk(chunk_index, chunk_data):
     try:
+        resourceExamples = load_resource_examples()
+        possibleResourceTypes = load_resource_types()
+        print(possibleResourceTypes)
+        print(resourceExamples)
         # Determine resource types for the chunk
         resource_tasks = [determineResourceTypes(chunk_data, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
         resource_results = await asyncio.gather(*resource_tasks)
@@ -178,6 +204,16 @@ async def process_chunk(chunk_index, chunk_data):
         async with resource_lock:
             resourceTypes.append(metaAnalysisOfChunk)
         
+            # Convert categories string to a list of categories
+        category_list = [cat.strip() for cat in categories.split('\n') if cat.strip()]
+    
+        # Get the resource examples for the identified categories
+ 
+        for category in category_list:
+            if category in resourceExamples:
+                currentResourceExamples += f"\nExample for {category}:\n{resourceExamples[category]}\n"
+    
+        print(currentResourceExamples)
         # Extract data for the chunk
         unformatted_data_tasks = [extractData(chunk_data, metaAnalysisOfChunk, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
         unformatted_data_results = await asyncio.gather(*unformatted_data_tasks)
@@ -204,7 +240,8 @@ async def process_chunk(chunk_index, chunk_data):
 async def determineResourceTypes(data, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
-        f"Please format your response as follows:\n"
+        f"The following is a list of valid FHIR4 resources types {possibleResourceTypes}"
+        f"\nPlease format your response as follows:\n"
         f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
         f"\n"
         f"{data}"
@@ -229,6 +266,7 @@ async def resourceType_meta_summary(data, attempts, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
         f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
+        f"The following is a list of valid FHIR4 resources types {possibleResourceTypes}"
         f"Summary: put your summary of the included data here\n"
         f"{data}"
     )
@@ -249,11 +287,13 @@ async def resourceType_meta_summary(data, attempts, chunk_num):
 
 # Asynchronous function to extract data based on identified resource types
 async def extractData(data, categories, attempt, chunk_num):
+
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
         f"Please only include data for resources that fall into the following categories: {categories}\n"
+        f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
         f"Please format your response as follows:\n"
-        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
+        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential. Don't respond with json, just the relevant key:value pairs\n"
         f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Accuracy and completeness are essential."
         f"{data}"
     )
@@ -277,6 +317,7 @@ async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyze the results below, look for errors, and reply with the correct list of resources,"
         f"Here is the data being summarized: {chunk}\n"
+        f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
         f"Here are the attempts at extracting the relevant data: {summaries}\n"
         f"Please format your response as follows:\n"
         f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
@@ -301,6 +342,7 @@ async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
 async def formatData(data, attempt, chunk_num):
     prompt = (
         f"Your goal is to convert the data below into a valid FHIR4 resource bundle. Please structure your output in valid JSON that adheres to the FHIR4 standard. Accuracy and completeness is essential. This task will fail if the server rejects the request."
+        f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
         f"{data}"
     )
     results = []
@@ -322,6 +364,8 @@ async def formatData(data, attempt, chunk_num):
 async def formattedDataFinalResult(unformattedData, formattedResults, attempt, chunk_num):
     prompt = (
         f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
+        f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
+
         f"{unformattedData}"
         f"{formattedResults}"
     )
