@@ -9,12 +9,17 @@ import pathlib
 import asyncio
 import threading
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
 
 # Initialize Flask application
 app = Flask(__name__)
  
 # Initialize OpenAI API client with your API key
-client = OpenAI(api_key="")
+client = OpenAI(api_key=api_key)
 
 # Global variables for data processing
 resourceTypes = []  # Store resource types identified in the data
