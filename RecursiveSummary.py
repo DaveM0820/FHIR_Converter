@@ -10,16 +10,60 @@ import asyncio
 import threading
 import time
 from dotenv import load_dotenv
+from abc import ABC, abstractmethod
 
-load_dotenv()
+class AIModel(ABC):
+    @abstractmethod
+    async def generate_stream(self, prompt, model, max_tokens, response_format):
+        pass
 
-api_key = os.getenv("OPENAI_API_KEY")
+    @abstractmethod
+    async def generate(self, prompt):
+        pass
+
+class OpenAIModel(AIModel):
+    def __init__(self, api_key):
+        self.client = OpenAI(api_key=api_key)
+
+    async def generate_stream(self, prompt, model="gpt-3.5-turbo", max_tokens=16000, response_format = "text"):
+        stream = self.client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            response_format={ "type": response_format},
+            messages=[{"role": "user", "content": prompt}],
+            stream=True,
+        )
+        for chunk in stream:
+            if chunk.choices[0].delta.content:
+                yield chunk.choices[0].delta.content
+
+    async def generate(self, prompt, model="gpt-3.5-turbo", max_tokens=16000, response_format = "text"):
+        response = self.client.chat.completions.create(
+            model=model,
+            response_format={ "type": response_format},
+            messages=[{"role": "user", "content": prompt}],
+        )
+        return response.choices[0].message.content
+'''
+class LocalLLMModel(AIModel):
+    def __init__(self, model_path):
+        self.model = your_local_llm_library.load_model(model_path)
+
+    async def generate_stream(self, prompt):
+        # Implement streaming for your local LLM if supported
+        # This is a placeholder implementation
+        response = self.model.generate(prompt)
+        for token in response.split():
+            yield token
+
+    async def generate(self, prompt):
+        return self.model.generate(prompt)
+'''
 
 # Initialize Flask application
 app = Flask(__name__)
  
 # Initialize OpenAI API client with your API key
-client = OpenAI(api_key=api_key)
+
 
 # Global variables for data processing
 resourceTypes = []  # Store resource types identified in the data
@@ -33,6 +77,12 @@ originalData = ""  # Store the original loaded data
 possibleResourceTypes = ""
 resourceExamples = ""
 currentResourceExamples = ""
+USE_OPENAI = True  # Set to False to use local LLM
+if USE_OPENAI:
+    load_dotenv()
+    ai_model = OpenAIModel(os.getenv("OPENAI_API_KEY"))
+else:
+    ai_model = LocalLLMModel("path/to/your/local/model")
 # Concurrency control for shared resources
 resource_lock = asyncio.Lock()
 
@@ -196,24 +246,28 @@ async def process_data_async():
 async def process_chunk(chunk_index, chunk_data):
     try:
         resourceExamples = load_resource_examples()
-        possibleResourceTypes = load_resource_types()
-        global currentResourceExamples
+        allResourceTypes = load_resource_types()
+        global currentResourceExamples, resourceTypes
         # Determine resource types for the chunk
         resource_tasks = [determineResourceTypes(chunk_data, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
         resource_results = await asyncio.gather(*resource_tasks)
         allResourcesForChunk = " ".join(resource_results)
         metaAnalysisOfChunk = await resourceType_meta_summary(chunk_data, allResourcesForChunk, chunk_index + 1)
-        
+        chunk_resource_types = [rt.strip() for rt in metaAnalysisOfChunk.split('\n') if rt.strip()]
         # Ensure thread safety when updating shared resourceTypes list
         async with resource_lock:
-            resourceTypes.append(metaAnalysisOfChunk)
+            resourceTypes.append(chunk_resource_types)
         # Convert categories string to a list of categories
         # Get the resource examples for the identified categories
-        for category in resourceTypes:
+        for category in chunk_resource_types:
             if category in resourceExamples:
                 currentResourceExamples += f"\nExample for {category}:\n{resourceExamples[category]}\n"
     
-        print(currentResourceExamples)
+        print(f"All ResourceExamples: {resourceExamples}")
+        print(f"allResourceTypes: {allResourceTypes}")
+        print(f"ResourceTypes: {resourceTypes}")
+
+        print(f"currentResourceExamples: {currentResourceExamples}")
         # Extract data for the chunk
         unformatted_data_tasks = [extractData(chunk_data, metaAnalysisOfChunk, attempt, chunk_index + 1) for attempt in range(1, numAttempts + 1)]
         unformatted_data_results = await asyncio.gather(*unformatted_data_tasks)
@@ -240,47 +294,33 @@ async def process_chunk(chunk_index, chunk_data):
 async def determineResourceTypes(data, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task."
+        f"Please exclude categories that do not exist in FHIR4. Do not include any additional formatting or text. Only reply with the categories, each on its own line.\n"
         f"The following is a list of valid FHIR4 resources types {possibleResourceTypes}"
-        f"\nPlease format your response as follows:\n"
-        f"Resource types: Include a list of FHIR4 resource types that apply to the data below.\n"
         f"\n"
         f"{data}"
     )
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempt, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 1, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
 
 # Asynchronous function to summarize resource types from multiple attempts
-async def resourceType_meta_summary(data, attempts, chunk_num):
+async def resourceType_meta_summary(data, attempt, chunk_num):
     prompt = (
         f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries that include a list of FHIR categories "
-        f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4.:\n"
+        f"Please list the valid FHIR4 categories in the following summaries. Please exclude categories that do not exist in FHIR4. Do not include any additional formatting or text. Only reply with the categories, each on its own line.\n"
         f"The following is a list of valid FHIR4 resources types {possibleResourceTypes}"
-        f"Summary: put your summary of the included data here\n"
         f"{data}"
     )
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 1, attempts, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 1, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
@@ -289,26 +329,20 @@ async def resourceType_meta_summary(data, attempts, chunk_num):
 async def extractData(data, categories, attempt, chunk_num):
 
     prompt = (
-        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR resource. Accuracy and completeness is essential for this task. "
-        f"Please only include data for resources that fall into the following categories: {categories}\n"
+        f"You are an expert medical data analyst who is analyzing the data below. Your goal is to extract information that will eventually be used to convert this data into a FHIR4 resource bundle. Accuracy and completeness is essential for this task. "
+        f"Please include ALL data for resources that fall into the following categories: {categories}\n"
         f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
         f"Please format your response as follows:\n"
-        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential. Don't respond with json, just the relevant key:value pairs\n"
-        f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Accuracy and completeness are essential."
+        f"Resource Type: The type of resource that this data applies to.\n"
+        f"key:value - This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Don't respond with json, just the relevant key:value pairs. Accuracy and completeness are essential. Try to include ALL data.\n"
         f"{data}"
     )
     print(prompt)
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 2, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
@@ -316,25 +350,19 @@ async def extractData(data, categories, attempt, chunk_num):
 # Asynchronous function to validate and summarize extracted data
 async def extractedDataFinalResult(chunk, summaries, attempt, chunk_num):
     prompt = (
-        f"You are an expert medical data analyst who is analyzing the data below. This is a collection of summaries of the same data. Each summary is attempting to extract valid FHIR4 resources from the data. Please analyze the results below, look for errors, and reply with the correct list of resources,"
+        f"Your job is to act as a critic. You are an expert medical data analyst who is analyzing the data below. This is a collection of summary attempts of the same data. Each summary is attempting to extract valid FHIR4 data. Please analyze the summaries below, look for errors, and reply with the corrected list of data,"
         f"Here is the data being summarized: {chunk}\n"
-        f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
+        f"Here is example JSON for each relevant FHIR4 resource type: {currentResourceExamples}\n"
         f"Here are the attempts at extracting the relevant data: {summaries}\n"
         f"Please format your response as follows:\n"
-        f"Resource Type: The type of resource that this data applies to, following this list all the key:value pairs that are required for this resource type. Accuracy and completeness are essential.\n"
-        f"key:value: This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data.  Include as many as required for each resource type. Accuracy and completeness are essential."
+        f"Resource Type: The type of resource that this data applies to\n"
+        f"key:value - This is the key value pair that is used for this resource type. Do not write 'key' or 'value', only the required data. Include as many as required for each resource type. Don't respond with json, just the relevant key:value pairs. Accuracy and completeness are essential. Try to include ALL data.\n"
     )
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 2, attempt, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 2, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
@@ -347,16 +375,10 @@ async def formatData(data, attempt, chunk_num):
         f"{data}"
     )
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt, response_format="json_object"):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 3, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
@@ -364,23 +386,17 @@ async def formatData(data, attempt, chunk_num):
 # Asynchronous function to validate and finalize formatted data
 async def formattedDataFinalResult(unformattedData, formattedResults, attempt, chunk_num):
     prompt = (
-        f"Below is unformatted data that will be converted to FHIR4 standard, and three attempts to convert the data to valid JSON. Look for errors and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
+        f"Below is unformatted data that will be converted to FHIR4 standard, and attempts to convert the data to valid JSON. Look for formatting and syntatical errors, correct them, and output the valid FHIR4 JSON that best matches the provided unformatted data. Accuracy and completeness is essential. This task will fail if the server rejects the request. Please output valid JSON only."
         f"Here is example JSON for each FHIR4 resource type: {currentResourceExamples}\n"
 
         f"{unformattedData}"
         f"{formattedResults}"
     )
     results = []
-    stream = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[{"role": "user", "content": prompt}],
-        stream=True,
-    )
     try:
-        for chunk in stream:
-            if chunk.choices[0].delta.content:
-                results.append(chunk.choices[0].delta.content)
-                streamAllOutput.append((chunk.choices[0].delta.content, 3, attempt, chunk_num))
+        async for chunk in ai_model.generate_stream(prompt, response_format="json_object"):
+            results.append(chunk)
+            streamAllOutput.append((chunk, 3, attempt, chunk_num))
     except Exception as e:
         print(f"Error during streaming: {e}")
     return ''.join(results)
